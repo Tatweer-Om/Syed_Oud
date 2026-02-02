@@ -723,6 +723,15 @@ public function updateDeliveryStatus(Request $request)
             $order->status = 'delivered';
             $order->save();
             $updated++;
+
+            // Send SMS to customer: "You have received the order" with order details (customer orders only)
+            if (!$isStockOrder) {
+                try {
+                    $this->sendSpecialOrderSms($order->id, 8);
+                } catch (\Exception $e) {
+                    \Log::error('Error sending special order delivered SMS: ' . $e->getMessage());
+                }
+            }
         }
 
         DB::commit();
@@ -1148,6 +1157,34 @@ public function getTailorAssignmentsData(Request $request)
         
         $order->save();
     }
+
+    /**
+     * Send SMS to customer for special order lifecycle (in progress / ready / delivered).
+     * Uses get_sms() and sms_module() from helpers. Only sends for customer orders with phone.
+     *
+     * @param int $orderId Special order ID
+     * @param int $smsStatus 6 = in progress (sent to tailor), 7 = ready (received), 8 = delivered
+     */
+    private function sendSpecialOrderSms($orderId, $smsStatus)
+    {
+        $order = SpecialOrder::with('customer')->find($orderId);
+        if (!$order || $order->customer_id === null || $order->source === 'stock') {
+            return;
+        }
+        $customerContact = $order->customer ? ($order->customer->phone ?? null) : null;
+        if (empty($customerContact)) {
+            return;
+        }
+        $smsParams = [
+            'sms_status' => $smsStatus,
+            'special_order_id' => $order->id,
+            'contact' => $customerContact,
+        ];
+        $smsContent = \get_sms($smsParams);
+        if (!empty($smsContent)) {
+            \sms_module($customerContact, $smsContent);
+        }
+    }
     
     /**
      * Add stock order items to color_sizes inventory when order becomes ready
@@ -1280,6 +1317,15 @@ public function assignItemsToTailor(Request $request)
         }
 
         DB::commit();
+
+        // Send SMS to customer: "Your order is in progress" (sent to tailor) — one SMS per affected customer order
+        foreach ($orderIds as $orderId) {
+            try {
+                $this->sendSpecialOrderSms($orderId, 6);
+            } catch (\Exception $e) {
+                \Log::error('Error sending special order in-progress SMS: ' . $e->getMessage());
+            }
+        }
 
         // Check for late deliveries after assignment (don't wait for response)
         try {
@@ -2156,6 +2202,18 @@ public function markTailorItemsReceived(Request $request)
                 } else {
                     $this->updateOrderStatusBasedOnItems($order);
                 }
+            }
+        }
+
+        // Send SMS to customer: "Your order is ready" for orders that became ready (customer orders only)
+        foreach ($orderIds as $orderId) {
+            try {
+                $order = SpecialOrder::with('items')->find($orderId);
+                if ($order && $order->customer_id !== null && $order->source !== 'stock' && $order->status === 'ready') {
+                    $this->sendSpecialOrderSms($orderId, 7);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error sending special order ready SMS: ' . $e->getMessage());
             }
         }
 

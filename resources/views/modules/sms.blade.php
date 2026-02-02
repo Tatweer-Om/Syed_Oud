@@ -33,6 +33,9 @@
                             <option value="3">{{ trans('messages.repairing_customer', [], session('locale')) }}</option>
                             <option value="4">{{ trans('messages.repairing_tailor', [], session('locale')) }}</option>
                             <option value="5">{{ trans('messages.order_delivery_customer', [], session('locale')) }}</option>
+                            <option value="6">{{ trans('messages.special_order_in_progress', [], session('locale')) }}</option>
+                            <option value="7">{{ trans('messages.special_order_ready', [], session('locale')) }}</option>
+                            <option value="8">{{ trans('messages.special_order_delivered', [], session('locale')) }}</option>
                         </select>
                     </div>
                 </div>

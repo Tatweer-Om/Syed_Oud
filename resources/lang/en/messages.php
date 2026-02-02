@@ -1224,6 +1224,9 @@ return [
     'repairing_customer' => 'Repairing (Customer)',
     'repairing_tailor' => 'Repairing (Tailor)',
     'order_delivery_customer' => 'Order Delivery (Customer)',
+    'special_order_in_progress' => 'Special Order - In Progress (Sent to Tailor)',
+    'special_order_ready' => 'Special Order - Ready (Received from Tailor)',
+    'special_order_delivered' => 'Special Order - Delivered (Customer Received)',
     
     // POS Delivery Status
     'update_delivery_status' => 'Update Delivery Status',

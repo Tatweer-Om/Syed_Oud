@@ -51,30 +51,30 @@ function get_sms($params)
 {
 
     // Default variables
-  $customer_name = "";
-$pos_order_no = "";
-$special_order_no = "";
-$customer_phone_number = "";
-$abaya_name = "";
-$abaya_code = "";
-$abaya_category = "";
-$color = "";
-$size = "";
-$abaya_length = "";
-$bust = "";
-$sleeves_length = "";
-$buttons = "";
-$special_order_number = "";
-$quantity = "";
-$total_amount = "";
+    $customer_name = "";
+    $pos_order_no = "";
+    $special_order_no = "";
+    $customer_phone_number = "";
+    $abaya_name = "";
+    $abaya_code = "";
+    $abaya_category = "";
+    $color = "";
+    $size = "";
+    $abaya_length = "";
+    $bust = "";
+    $sleeves_length = "";
+    $buttons = "";
+    $special_order_number = "";
+    $quantity = "";
+    $total_amount = "";
     $remaining_amount = "";
-$paid_amount = "";
-$discount = "";
-$delivery_charges = "";
-$tailor_name = "";
-$delivery_date = "";
-$pos_order_status = "";
-$special_order_status = "";
+    $paid_amount = "";
+    $discount = "";
+    $delivery_charges = "";
+    $tailor_name = "";
+    $delivery_date = "";
+    $pos_order_status = "";
+    $special_order_status = "";
 
 
     // Template fetch
@@ -88,7 +88,7 @@ $special_order_status = "";
     // Case: POS Order (sms_status == 1)
     if ($params['sms_status'] == 1) {
         $orderId = $params['order_id'] ?? $params['patient_id'] ?? null;
-        
+
         if ($orderId) {
             // Fetch the POS order with all relationships
             $order = PosOrders::with([
@@ -98,12 +98,12 @@ $special_order_status = "";
                 'details.color',
                 'details.size'
             ])->find($orderId);
-            
+
             if ($order) {
                 // Customer details
                 $customer_name = $order->customer ? ($order->customer->name ?? '') : '';
                 $customer_phone_number = $order->customer ? ($order->customer->phone ?? '') : '';
-                
+
                 // Order details
                 $pos_order_no = $order->order_no ?? '';
                 $total_amount = number_format($order->total_amount ?? 0, 3);
@@ -111,7 +111,7 @@ $special_order_status = "";
                 $paid_amount = number_format($order->paid_amount ?? 0, 3);
                 $remaining_amount = number_format(($order->total_amount ?? 0) - ($order->paid_amount ?? 0), 3);
                 $delivery_charges = number_format($order->delivery_charges ?? 0, 3);
-                
+
                 // Get order status
                 $pos_order_status = '';
                 if ($order->delivery_status) {
@@ -121,7 +121,7 @@ $special_order_status = "";
                 } else {
                     $pos_order_status = 'Pending';
                 }
-                
+
                 // Get first item details (or combine if multiple items)
                 $firstDetail = $order->details->first();
                 if ($firstDetail) {
@@ -129,7 +129,7 @@ $special_order_status = "";
                     if ($stock) {
                         $abaya_name = $stock->design_name ?? $stock->abaya_code ?? '';
                         $abaya_code = $stock->abaya_code ?? '';
-                        
+
                         // Get category name based on locale
                         $locale = session('locale', 'en');
                         if ($stock->category) {
@@ -142,7 +142,7 @@ $special_order_status = "";
                             $abaya_category = '';
                         }
                     }
-                    
+
                     // Get color and size from first detail
                     $locale = session('locale', 'en');
                     if ($firstDetail->color) {
@@ -154,7 +154,7 @@ $special_order_status = "";
                     } else {
                         $color = '';
                     }
-                    
+
                     if ($firstDetail->size) {
                         if ($locale === 'ar') {
                             $size = $firstDetail->size->size_name_ar ?? $firstDetail->size->size_name_en ?? '';
@@ -164,7 +164,7 @@ $special_order_status = "";
                     } else {
                         $size = '';
                     }
-                    
+
                     // Calculate total quantity from all order details
                     $quantity = $order->details->sum('item_quantity') ?? 1;
                 } else {
@@ -179,11 +179,11 @@ $special_order_status = "";
         }
     }
 
-    // Case: Special Order (sms_status == 2)
-    else if ($params['sms_status'] == 2) {
+    // Case: Special Order (sms_status == 2) and Special Order lifecycle: in progress (6), ready (7), delivered (8)
+    else if ($params['sms_status'] == 2 || in_array($params['sms_status'], [6, 7, 8])) {
         // Get special_order_id from params
         $specialOrderId = $params['special_order_id'] ?? null;
-        
+
         if ($specialOrderId) {
             // Fetch the Special Order with all relationships
             $specialOrder = SpecialOrder::with([
@@ -193,36 +193,36 @@ $special_order_status = "";
                 'items.stock',
                 'items.tailor'
             ])->find($specialOrderId);
-            
+
             // Refresh items relationship to ensure data is loaded
             if ($specialOrder) {
                 $specialOrder->load('items');
             }
-            
+
             if ($specialOrder) {
                 // Customer details
                 $customer_name = $specialOrder->customer ? ($specialOrder->customer->name ?? '') : '';
                 $customer_phone_number = $specialOrder->customer ? ($specialOrder->customer->phone ?? '') : '';
-                
+
                 // Generate order number: YYYY-00ID (e.g., 2025-0001)
                 $orderDate = \Carbon\Carbon::parse($specialOrder->created_at);
-                $special_order_no = $orderDate->format('Y') . '-' . str_pad($specialOrder->id, 4, '0', STR_PAD_LEFT);
+                $special_order_no = $specialOrder->special_order_no ?? '';
                 $special_order_number = $special_order_no; // Alias
-                
+
                 // Order details
                 $totalAmountValue = (float)($specialOrder->total_amount ?? 0);
                 $paidAmountValue = (float)($specialOrder->paid_amount ?? 0);
                 $remainingAmountValue = $totalAmountValue - $paidAmountValue;
-                
+
                 $total_amount = number_format($totalAmountValue, 3);
                 $paid_amount = number_format($paidAmountValue, 3);
                 $remaining_amount = number_format($remainingAmountValue, 3);
                 $delivery_charges = number_format($specialOrder->shipping_fee ?? 0, 3);
                 $special_order_status = $specialOrder->status ?? 'new';
-                
+
                 // Calculate delivery date: 2 weeks after order creation date
                 $delivery_date = $orderDate->copy()->addWeeks(2)->format('Y-m-d');
-                
+
                 // Get first item details (or combine if multiple items)
                 $firstItem = $specialOrder->items->first();
                 if ($firstItem) {
@@ -230,7 +230,7 @@ $special_order_status = "";
                     if ($stock) {
                         $abaya_name = $firstItem->design_name ?? $stock->design_name ?? $stock->abaya_code ?? '';
                         $abaya_code = $firstItem->abaya_code ?? $stock->abaya_code ?? '';
-                        
+
                         // Get category name based on locale
                         $locale = session('locale', 'en');
                         if ($stock->category) {
@@ -247,7 +247,7 @@ $special_order_status = "";
                         $abaya_code = $firstItem->abaya_code ?? '';
                         $abaya_category = '';
                     }
-                    
+
                     // Get abaya measurements (check if value exists and is numeric, including 0)
                     $abayaLengthValue = $firstItem->abaya_length;
                     if ($abayaLengthValue !== null && $abayaLengthValue !== '' && is_numeric($abayaLengthValue)) {
@@ -255,23 +255,23 @@ $special_order_status = "";
                     } else {
                         $abaya_length = '';
                     }
-                    
+
                     $bustValue = $firstItem->bust;
                     if ($bustValue !== null && $bustValue !== '' && is_numeric($bustValue)) {
                         $bust = number_format((float)$bustValue, 2);
                     } else {
                         $bust = '';
                     }
-                    
+
                     $sleevesLengthValue = $firstItem->sleeves_length;
                     if ($sleevesLengthValue !== null && $sleevesLengthValue !== '' && is_numeric($sleevesLengthValue)) {
                         $sleeves_length = number_format((float)$sleevesLengthValue, 2);
                     } else {
                         $sleeves_length = '';
                     }
-                    
+
                     $buttons = $firstItem->buttons ? (session('locale', 'en') === 'ar' ? 'نعم' : 'Yes') : (session('locale', 'en') === 'ar' ? 'لا' : 'No');
-                    
+
                     // Get tailor name
                     if ($firstItem->tailor) {
                         $tailor_name = $firstItem->tailor->tailor_name ?? '';
@@ -280,10 +280,10 @@ $special_order_status = "";
                     } else {
                         $tailor_name = '';
                     }
-                    
+
                     // Calculate total quantity from all items
                     $quantity = $specialOrder->items->sum('quantity') ?? 1;
-                    
+
                     // Note: Special orders use custom measurements (abaya_length, bust, sleeves_length)
                     // instead of standard sizes, so $size remains empty for special orders
                     $size = '';
@@ -310,37 +310,36 @@ $special_order_status = "";
 
     // Case: Session done
     else if ($params['sms_status'] == 5) {
-       
     }
 
 
     // Define template replacement variables
     $variables = [
-    'customer_name'        => $customer_name,
-    'pos_order_no'         => $pos_order_no,
-    'special_order_no'     => $special_order_no,
-    'customer_phone_number'=> $customer_phone_number,
-    'abaya_name'           => $abaya_name,
-    'abaya_code'           => $abaya_code,
-    'abaya_category'       => $abaya_category,
-    'color'                => $color,
-    'size'                 => $size,
-    'abaya_length'         => $abaya_length,
-    'bust'                 => $bust,
-    'sleeves_length'       => $sleeves_length,
-    'buttons'              => $buttons,
-    'special_order_number' => $special_order_number,
-    'quantity'             => $quantity,
-    'total_amount'         => $total_amount,
-    'remaining_amount'     => $remaining_amount,
-    'paid_amount'          => $paid_amount,
-    'discount'             => $discount,
-    'delivery_charges'     => $delivery_charges,
-    'tailor_name'          => $tailor_name,
-    'delivery_date'        => $delivery_date,
-    'pos_order_status'     => $pos_order_status,
-    'special_order_status' => $special_order_status,
-];
+        'customer_name'        => $customer_name,
+        'pos_order_no'         => $pos_order_no,
+        'special_order_no'     => $special_order_no,
+        'customer_phone_number' => $customer_phone_number,
+        'abaya_name'           => $abaya_name,
+        'abaya_code'           => $abaya_code,
+        'abaya_category'       => $abaya_category,
+        'color'                => $color,
+        'size'                 => $size,
+        'abaya_length'         => $abaya_length,
+        'bust'                 => $bust,
+        'sleeves_length'       => $sleeves_length,
+        'buttons'              => $buttons,
+        'special_order_number' => $special_order_number,
+        'quantity'             => $quantity,
+        'total_amount'         => $total_amount,
+        'remaining_amount'     => $remaining_amount,
+        'paid_amount'          => $paid_amount,
+        'discount'             => $discount,
+        'delivery_charges'     => $delivery_charges,
+        'tailor_name'          => $tailor_name,
+        'delivery_date'        => $delivery_date,
+        'pos_order_status'     => $pos_order_status,
+        'special_order_status' => $special_order_status,
+    ];
 
 
     // Replace placeholders in base64 decoded template
@@ -411,13 +410,13 @@ function syncPendingStocksToWebsite()
     $query = Stock::with([
         'colorSizes' => function ($query) {
             $query->whereNotNull('color_id')
-                  ->whereNotNull('size_id')
-                  ->where('color_id', '!=', '')
-                  ->where('size_id', '!=', '');
+                ->whereNotNull('size_id')
+                ->where('color_id', '!=', '')
+                ->where('size_id', '!=', '');
         },
         'images'
     ])->whereIn('website_data_delivery_status', [0, 1])
-      ->orderBy('id', 'asc');
+        ->orderBy('id', 'asc');
 
     if ($limit > 0) {
         $query->limit($limit);
@@ -461,55 +460,55 @@ function syncPendingStocksToWebsite()
             'images' => $imagesArray,
         ];
 
-     try {
-    $payload = [
-        'stock'       => $stockData,
-        'color_sizes' => $colorSizesArray,
-        'images'      => $imagesArray,
-    ];
+        try {
+            $payload = [
+                'stock'       => $stockData,
+                'color_sizes' => $colorSizesArray,
+                'images'      => $imagesArray,
+            ];
 
-    $response = Http::timeout(30)
-        ->withHeaders([
-            'Accept'       => 'application/json',
-            'Content-Type' => 'application/json',
-            'User-Agent'   => 'TatweerClothingStockSync/1.0', // optional, some APIs like this
-        ])
-        ->post('https://duo-fashion.com/admin_advance/Api/add_stock_website', $payload);
+            $response = Http::timeout(30)
+                ->withHeaders([
+                    'Accept'       => 'application/json',
+                    'Content-Type' => 'application/json',
+                    'User-Agent'   => 'TatweerClothingStockSync/1.0', // optional, some APIs like this
+                ])
+                ->post('https://duo-fashion.com/admin_advance/Api/add_stock_website', $payload);
 
-    // For better debugging
-    \Log::info('Website API call', [
-        'stock_id'     => $stockId,
-        'sent_payload' => $payload, // or json_encode($payload, JSON_PRETTY_PRINT) if too big
-        'status'       => $response->status(),
-        'body'         => $response->body(),
-        'json'         => $response->json(),
-    ]);
+            // For better debugging
+            \Log::info('Website API call', [
+                'stock_id'     => $stockId,
+                'sent_payload' => $payload, // or json_encode($payload, JSON_PRETTY_PRINT) if too big
+                'status'       => $response->status(),
+                'body'         => $response->body(),
+                'json'         => $response->json(),
+            ]);
 
-    if ($response->successful() && $response->json('status') === true) {  // assuming it returns {"status":true,...} on success
-        Stock::where('id', $stockId)->update(['website_data_delivery_status' => 2]);
-        $results['successful']++;
-        $results['details'][] = [
-            'stock_id'    => $stockId,
-            'success'     => true,
-            'http_status' => $response->status(),
-            'api_message' => $response->json('message') ?? 'OK',
-        ];
-    } else {
-        Stock::where('id', $stockId)->update(['website_data_delivery_status' => 1]); // maybe retry status
-        $results['failed']++;
-        $results['details'][] = [
-            'stock_id'    => $stockId,
-            'success'     => false,
-            'http_status' => $response->status(),
-            'api_response' => $response->json() ?? $response->body(),
-        ];
-    }
-} catch (\Exception $e) {
-    \Log::error('Website sync failed', ['stock_id' => $stockId, 'error' => $e->getMessage()]);
-    Stock::where('id', $stockId)->update(['website_data_delivery_status' => 0]);
-    $results['failed']++;
-    $results['details'][] = ['stock_id' => $stockId, 'success' => false, 'error' => $e->getMessage()];
-}
+            if ($response->successful() && $response->json('status') === true) {  // assuming it returns {"status":true,...} on success
+                Stock::where('id', $stockId)->update(['website_data_delivery_status' => 2]);
+                $results['successful']++;
+                $results['details'][] = [
+                    'stock_id'    => $stockId,
+                    'success'     => true,
+                    'http_status' => $response->status(),
+                    'api_message' => $response->json('message') ?? 'OK',
+                ];
+            } else {
+                Stock::where('id', $stockId)->update(['website_data_delivery_status' => 1]); // maybe retry status
+                $results['failed']++;
+                $results['details'][] = [
+                    'stock_id'    => $stockId,
+                    'success'     => false,
+                    'http_status' => $response->status(),
+                    'api_response' => $response->json() ?? $response->body(),
+                ];
+            }
+        } catch (\Exception $e) {
+            \Log::error('Website sync failed', ['stock_id' => $stockId, 'error' => $e->getMessage()]);
+            Stock::where('id', $stockId)->update(['website_data_delivery_status' => 0]);
+            $results['failed']++;
+            $results['details'][] = ['stock_id' => $stockId, 'success' => false, 'error' => $e->getMessage()];
+        }
     }
 
     return $results;
@@ -646,16 +645,16 @@ function syncAllTransferItemsToWebsiteReceiveQty(string $targetToLocation = 'cha
 
     $items = $query->get();
     $results['picked'] = $items->count();
-   
+
     foreach ($items as $item) {
         $item_data = Stock::where('id', $item->stock_id)
-                  ->orderBy('id', 'asc')
-                  ->first();
-        
-        
+            ->orderBy('id', 'asc')
+            ->first();
+
+
         $payload_item = $item->toArray();
         $payload_item['barcode'] = $item_data->barcode;
-        
+
         $payload = json_encode(['item' => $payload_item]);
 
         $url = "https://duo-fashion.com/admin_advance/Api/receive_stock_qty";
@@ -679,12 +678,10 @@ function syncAllTransferItemsToWebsiteReceiveQty(string $targetToLocation = 'cha
         if ($resp === false) {
             echo curl_error($curl);
         } else {
-            $result = json_decode($resp,true);
-            if($result['status']==1)
-            {
-                $item->website_data_delivery_status=2;
-                $item->save(); 
-                
+            $result = json_decode($resp, true);
+            if ($result['status'] == 1) {
+                $item->website_data_delivery_status = 2;
+                $item->save();
             }
             // print_r($result);
         }
@@ -701,64 +698,60 @@ function syncAllTransferItemsToWebsiteReceiveQty(string $targetToLocation = 'cha
  *
  * @return array ['success' => bool, 'http_status' => int, 'response' => array|string, 'items_sent' => int]
  */
-function fetchWebsiteCurrentQty($stock_id,$barcode,$color_id,$size_id)
+function fetchWebsiteCurrentQty($stock_id, $barcode, $color_id, $size_id)
 {
     $url = "https://duo-fashion.com/admin_advance/Api/website_current_qty";
 
-     
 
-        // EXACT payload style like receive_stock_qty
-        $payload_item = [
-            'stock_id' => (int) $stock_id,
-            'size_id'  => (int) $size_id,
-            'color_id' => (int) $color_id,
-            'barcode'  =>$barcode, 
-        ];
 
-        $payload = json_encode(['item' => $payload_item]);
+    // EXACT payload style like receive_stock_qty
+    $payload_item = [
+        'stock_id' => (int) $stock_id,
+        'size_id'  => (int) $size_id,
+        'color_id' => (int) $color_id,
+        'barcode'  => $barcode,
+    ];
 
-        Log::info('Website current qty payload', ['item' => $payload_item]);
+    $payload = json_encode(['item' => $payload_item]);
 
-        $curl = curl_init($url);
+    Log::info('Website current qty payload', ['item' => $payload_item]);
 
-        curl_setopt_array($curl, [
-            CURLOPT_POST => true,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POSTFIELDS => $payload,
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen($payload),
-            ],
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_SSL_VERIFYPEER => false,
+    $curl = curl_init($url);
+
+    curl_setopt_array($curl, [
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POSTFIELDS => $payload,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($payload),
+        ],
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_SSL_VERIFYPEER => false,
+    ]);
+
+    $resp = curl_exec($curl);
+    $result = json_decode($resp, true);
+
+    if ($resp === false) {
+        Log::error('Website current qty CURL error', [
+            'error' => curl_error($curl),
         ]);
+    } else {
 
-        $resp = curl_exec($curl);
-        $result = json_decode($resp, true);
-        
-        if ($resp === false) {
-            Log::error('Website current qty CURL error', [
-                'error' => curl_error($curl),
-            ]);
-            
+
+        if (isset($result['status']) && $result['status'] == 1) {
+            return $result['qty'];
         } else {
-            
-
-            if (isset($result['status']) && $result['status'] == 1) {
-                return $result['qty'];
-            } else {
-               print_r($result);
-                Log::error('Website current qty API failed', [
-                    'response' => $result,
-                    'payload' => $payload_item,
-                ]);
-            }
+            print_r($result);
+            Log::error('Website current qty API failed', [
+                'response' => $result,
+                'payload' => $payload_item,
+            ]);
         }
+    }
 
-        curl_close($curl);
-    
-
-     
+    curl_close($curl);
 }
 
 /**
@@ -807,9 +800,9 @@ function get_shipping_fee_from_api($area_id, $city_id, $customer_id, $total_quan
 
         $json = json_decode($response, true);
 
-     if ($httpCode === 200 && isset($json['shipping_charges'])) {
-    return (float) $json['shipping_charges'];
-}
+        if ($httpCode === 200 && isset($json['shipping_charges'])) {
+            return (float) $json['shipping_charges'];
+        }
 
         \Log::warning('Shipping API unexpected response', [
             'url'      => $url,
@@ -819,7 +812,6 @@ function get_shipping_fee_from_api($area_id, $city_id, $customer_id, $total_quan
         ]);
 
         return null;
-
     } catch (\Exception $e) {
         \Log::error('Shipping API error', [
             'url'     => $url,
@@ -880,10 +872,13 @@ function get_shipping_fee_for_pos_order($area_id, $city_id, $customer_id, $total
         curl_close($ch);
 
         $json = json_decode($response, true);
-       
+
         if ($httpCode !== 200 || !is_array($json)) {
             \Log::warning('POS shipping API unexpected response', [
-                'url' => $url, 'payload' => $payload, 'response' => $json, 'status' => $httpCode,
+                'url' => $url,
+                'payload' => $payload,
+                'response' => $json,
+                'status' => $httpCode,
             ]);
             return null;
         }
@@ -896,12 +891,16 @@ function get_shipping_fee_for_pos_order($area_id, $city_id, $customer_id, $total
         }
 
         \Log::warning('POS shipping API no fee in response', [
-            'url' => $url, 'payload' => $payload, 'response' => $json,
+            'url' => $url,
+            'payload' => $payload,
+            'response' => $json,
         ]);
         return null;
     } catch (\Exception $e) {
         \Log::error('POS shipping API error', [
-            'url' => $url, 'payload' => $payload, 'error' => $e->getMessage(),
+            'url' => $url,
+            'payload' => $payload,
+            'error' => $e->getMessage(),
         ]);
         return null;
     }

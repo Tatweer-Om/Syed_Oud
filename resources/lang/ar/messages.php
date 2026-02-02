@@ -1219,6 +1219,9 @@ return [
     'repairing_customer' => 'إصلاح (عميل)',
     'repairing_tailor' => 'إصلاح (خياط)',
     'order_delivery_customer' => 'تسليم الطلب (عميل)',
+    'special_order_in_progress' => 'طلب خاص - قيد التنفيذ (تم الإرسال للخياط)',
+    'special_order_ready' => 'طلب خاص - جاهز (تم الاستلام من الخياط)',
+    'special_order_delivered' => 'طلب خاص - تم التسليم (استلم العميل)',
     
     // POS Delivery Status
     'update_delivery_status' => 'تحديث حالة التوصيل',
