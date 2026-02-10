@@ -2,30 +2,19 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use App\Http\Controllers\SizeController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ColorController;
 use App\Http\Controllers\StockController;
-use App\Http\Controllers\BranchController;
-use App\Http\Controllers\ResaleController;
-use App\Http\Controllers\TailorController;
-use App\Http\Controllers\ChannelController;
-use App\Http\Controllers\BoutiqueController;
 use App\Http\Controllers\MaterialController;
-use App\Http\Controllers\WharehouseController;
-use App\Http\Controllers\SpecialOrderController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\PosController;
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\AreaController;
-use App\Http\Controllers\CityController;
-use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SMSController;
-use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SizeController;
+use App\Http\Controllers\ColorController;
+use App\Http\Controllers\CategoryController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -46,10 +35,7 @@ Route::post('/change-locale', function (Request $request) {
 
 Route::get('dashboard', [HomeController::class, 'index'])->name('dashboard');
 Route::get('dashboard/monthly-data', [HomeController::class, 'getMonthlyData'])->name('dashboard.monthly_data');
-Route::get('dashboard/abayas-under-tailoring', [HomeController::class, 'getAbayasUnderTailoring'])->name('dashboard.abayas_under_tailoring');
 Route::get('dashboard/low-stock-items', [HomeController::class, 'getLowStockItems'])->name('dashboard.low_stock_items');
-Route::get('dashboard/boutique-rent-reminders', [HomeController::class, 'getBoutiqueRentReminders'])->name('dashboard.boutique_rent_reminders');
-Route::get('dashboard/recent-special-orders', [HomeController::class, 'getRecentSpecialOrders'])->name('dashboard.recent_special_orders');
 Route::get('dashboard/notifications', [HomeController::class, 'getNotifications'])->name('dashboard.notifications');
 
 // Settings Routes
@@ -57,51 +43,7 @@ Route::get('settings', [SettingsController::class, 'index'])->name('settings');
 Route::get('settings/get', [SettingsController::class, 'getSettings'])->name('settings.get');
 Route::post('settings/update', [SettingsController::class, 'update'])->name('settings.update');
 
-
-Route::get('color', [ColorController::class, 'index'])->name('color');
-Route::post('add_color', [ColorController::class, 'add_color'])->name('add_color');
-Route::get('show_color', [ColorController::class, 'show_color'])->name('show_color');
-Route::post('edit_color', [ColorController::class, 'edit_color'])->name('edit_color');
-Route::post('update_color', [ColorController::class, 'update_color'])->name('update_color');
-Route::post('delete_color', [ColorController::class, 'delete_color'])->name('delete_color');
-
-
-Route::get('size', [SizeController::class, 'index']);
-Route::post('sizes', [SizeController::class, 'store']);
-Route::put('sizes/{size}', [SizeController::class, 'update']);
-Route::delete('sizes/{size}', [SizeController::class, 'destroy']);
-Route::get('sizes/list', [SizeController::class, 'getSizes']);
-Route::get('sizes/{size}', [SizeController::class, 'show']);
-
-Route::get('boutique', [BoutiqueController::class, 'index'])->name('boutique');
-Route::post('add_boutique', [BoutiqueController::class, 'add_boutique'])->name('add_boutique');
-Route::get('show_boutique', [BoutiqueController::class, 'show_boutique'])->name('show_boutique');
-Route::get('boutique_list', [BoutiqueController::class, 'boutique_list'])->name('boutique_list');
-Route::get('boutiques/list', [BoutiqueController::class, 'getboutiques']);
-Route::get('/boutiques/{id}', [BoutiqueController::class, 'show']);
-Route::get('edit_boutique/{id}', [BoutiqueController::class, 'edit_boutique'])->name('edit_boutique');
-Route::post('update_boutique', [BoutiqueController::class, 'update_boutique'])->name('update_boutique');
-Route::delete('boutique/{id}', [BoutiqueController::class, 'destroy'])->name('boutique.destroy');
-Route::get('boutique_profile/{id}', [BoutiqueController::class, 'boutique_profile'])->name('boutique_profile');
-Route::post('update_rent_invoice_status', [BoutiqueController::class, 'update_rent_invoice_status'])->name('update_rent_invoice_status');
-Route::get('get_boutique_invoices', [BoutiqueController::class, 'get_boutique_invoices'])->name('get_boutique_invoices');
-Route::post('update_invoice_payment', [BoutiqueController::class, 'update_invoice_payment'])->name('update_invoice_payment');
-
-Route::get('tailor', [TailorController::class, 'index']);
-Route::post('tailors', [TailorController::class, 'store']);
-Route::put('tailors/{tailor}', [TailorController::class, 'update']);
-Route::delete('tailors/{tailor}', [TailorController::class, 'destroy']);
-Route::get('tailors/list', [TailorController::class, 'gettailors']);
-Route::get('tailors/{tailor}', [TailorController::class, 'show']);
-Route::get('tailor_profile/{id}', [TailorController::class, 'tailor_profile'])->name('tailor_profile');
-Route::get('tailor-material-audit', [TailorController::class, 'materialAudit'])->name('tailor_material_audit');
-Route::get('tailor-material-audit/data', [TailorController::class, 'getMaterialAuditData'])->name('tailor_material_audit.data');
-
-// Late Delivery Routes
-Route::post('special-orders/check-late-deliveries', [SpecialOrderController::class, 'checkAndMarkLateDeliveries'])->name('special_orders.check_late');
-Route::get('special-orders/late-deliveries', [SpecialOrderController::class, 'getLateDeliveries'])->name('special_orders.late_deliveries');
-
-
+// User / Auth Routes
 Route::get('user', [UserController::class, 'index'])->name('user');
 Route::post('users', [UserController::class, 'store']);
 Route::put('users/{user}', [UserController::class, 'update']);
@@ -112,26 +54,7 @@ Route::get('login_page', [UserController::class, 'login_page'])->name('login_pag
 Route::post('/login-user', [UserController::class, 'login_user'])->name('login_user');
 Route::post('/logout', [UserController::class, 'logout'])->name('logout');
 
-Route::get('colors', [ColorController::class, 'index']);
-Route::post('colors', [ColorController::class, 'store']);
-Route::put('colors/{color}', [ColorController::class, 'update']);
-Route::delete('colors/{color}', [ColorController::class, 'destroy']);
-Route::get('colors/list', [ColorController::class, 'getcolors']);
-Route::get('colors/{color}', [ColorController::class, 'show']);
-
-Route::get('channels', [ChannelController::class, 'index'])->name('channel');
-Route::post('channels', [ChannelController::class, 'store']);
-Route::put('channels/{channel}', [ChannelController::class, 'update']);
-Route::delete('channels/{channel}', [ChannelController::class, 'destroy']);
-Route::get('channels/list', [ChannelController::class, 'getchannels']);
-Route::get('channels/{channel}', [ChannelController::class, 'show']);
-Route::post('channels/{channel}/update-status', [ChannelController::class, 'updateStatus']);
-Route::get('channel_profile/{id}', [ChannelController::class, 'profile'])->name('channel_profile');
-Route::get('channel_profile/{id}/transfers', [ChannelController::class, 'getTransfers'])->name('channel_profile.transfers');
-Route::get('channel_profile/{id}/transfer-items', [ChannelController::class, 'getTransferItems'])->name('channel_profile.transfer_items');
-Route::get('channel_profile/{id}/sales', [ChannelController::class, 'getSales'])->name('channel_profile.sales');
-Route::get('channel_profile/{id}/item-status', [ChannelController::class, 'getItemStatus'])->name('channel_profile.item_status');
-
+// Category, Color, Size (required by Stock)
 Route::get('categories', [CategoryController::class, 'index'])->name('category');
 Route::post('categories', [CategoryController::class, 'store']);
 Route::put('categories/{category}', [CategoryController::class, 'update']);
@@ -139,6 +62,27 @@ Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
 Route::get('categories/list', [CategoryController::class, 'getCategories']);
 Route::get('categories/{category}', [CategoryController::class, 'show']);
 
+Route::get('color', [ColorController::class, 'index'])->name('color');
+Route::post('add_color', [ColorController::class, 'add_color'])->name('add_color');
+Route::get('show_color', [ColorController::class, 'show_color'])->name('show_color');
+Route::post('edit_color', [ColorController::class, 'edit_color'])->name('edit_color');
+Route::post('update_color', [ColorController::class, 'update_color'])->name('update_color');
+Route::post('delete_color', [ColorController::class, 'delete_color'])->name('delete_color');
+Route::get('colors', [ColorController::class, 'index']);
+Route::post('colors', [ColorController::class, 'store']);
+Route::put('colors/{color}', [ColorController::class, 'update']);
+Route::delete('colors/{color}', [ColorController::class, 'destroy']);
+Route::get('colors/list', [ColorController::class, 'getcolors']);
+Route::get('colors/{color}', [ColorController::class, 'show']);
+
+Route::get('size', [SizeController::class, 'index'])->name('size');
+Route::post('sizes', [SizeController::class, 'store']);
+Route::put('sizes/{size}', [SizeController::class, 'update']);
+Route::delete('sizes/{size}', [SizeController::class, 'destroy']);
+Route::get('sizes/list', [SizeController::class, 'getSizes']);
+Route::get('sizes/{size}', [SizeController::class, 'show']);
+
+// Expense Category
 Route::get('expense-categories', [ExpenseCategoryController::class, 'index'])->name('expense_category');
 Route::post('expense-categories', [ExpenseCategoryController::class, 'store']);
 Route::put('expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'update']);
@@ -146,6 +90,16 @@ Route::delete('expense-categories/{expenseCategory}', [ExpenseCategoryController
 Route::get('expense-categories/list', [ExpenseCategoryController::class, 'getExpenseCategories']);
 Route::get('expense-categories/{expenseCategory}', [ExpenseCategoryController::class, 'show']);
 
+// Supplier
+Route::get('suppliers', [SupplierController::class, 'index'])->name('supplier');
+Route::get('suppliers/list', [SupplierController::class, 'getSuppliers']);
+Route::get('suppliers/count', [SupplierController::class, 'getTotalCount']);
+Route::post('suppliers', [SupplierController::class, 'store']);
+Route::put('suppliers/{supplier}', [SupplierController::class, 'update']);
+Route::delete('suppliers/{supplier}', [SupplierController::class, 'destroy']);
+Route::get('suppliers/{supplier}', [SupplierController::class, 'show']);
+
+// Expense
 Route::get('expenses', [ExpenseController::class, 'index'])->name('expense');
 Route::post('expenses', [ExpenseController::class, 'store']);
 Route::put('expenses/{expense}', [ExpenseController::class, 'update']);
@@ -153,10 +107,12 @@ Route::delete('expenses/{expense}', [ExpenseController::class, 'destroy']);
 Route::get('expenses/list', [ExpenseController::class, 'getExpenses']);
 Route::get('expenses/{expense}', [ExpenseController::class, 'show']);
 
+// SMS
 Route::get('sms', [SMSController::class, 'index'])->name('sms');
 Route::post('sms', [SMSController::class, 'store']);
 Route::get('sms/get', [SMSController::class, 'getSMS']);
 
+// Account
 Route::get('accounts', [AccountController::class, 'index'])->name('account');
 Route::post('accounts', [AccountController::class, 'store']);
 Route::put('accounts/{account}', [AccountController::class, 'update']);
@@ -165,59 +121,9 @@ Route::get('accounts/list', [AccountController::class, 'getAccounts']);
 Route::get('accounts/all', [AccountController::class, 'all']);
 Route::get('accounts/{account}', [AccountController::class, 'show']);
 
-Route::get('areas', [AreaController::class, 'index'])->name('area');
-Route::post('areas', [AreaController::class, 'store']);
-Route::put('areas/{area}', [AreaController::class, 'update']);
-Route::delete('areas/{area}', [AreaController::class, 'destroy']);
-Route::get('areas/list', [AreaController::class, 'getAreas']);
-Route::get('areas/all', [AreaController::class, 'all']);
-Route::get('areas/{area}', [AreaController::class, 'show']);
-
-Route::get('cities', [CityController::class, 'index'])->name('city');
-Route::post('cities', [CityController::class, 'store']);
-Route::put('cities/{city}', [CityController::class, 'update']);
-Route::delete('cities/{city}', [CityController::class, 'destroy']);
-Route::get('cities/list', [CityController::class, 'getCities']);
-Route::get('cities/by-area', [CityController::class, 'byArea']);
-Route::get('cities/{city}', [CityController::class, 'show']);
-
-Route::get('customers', [CustomerController::class, 'index'])->name('customer');
-Route::post('customers', [CustomerController::class, 'store']);
-Route::put('customers/{customer}', [CustomerController::class, 'update']);
-Route::delete('customers/{customer}', [CustomerController::class, 'destroy']);
-Route::get('customers/list', [CustomerController::class, 'getCustomers']);
-Route::get('customers/{customer}', [CustomerController::class, 'show']);
-Route::get('customer_profile/{id}', [CustomerController::class, 'profile'])->name('customer_profile');
-
-
-
-Route::get('size', [SizeController::class, 'index'])->name('size');
-
-
-
-Route::get('tailor', [TailorController::class, 'index'])->name('tailor');
-Route::post('add_tailor', [TailorController::class, 'add_tailor'])->name('add_tailor');
-Route::get('show_tailor', [TailorController::class, 'show_tailor'])->name('show_tailor');
-Route::post('edit_tailor', [TailorController::class, 'edit_tailor'])->name('edit_tailor');
-Route::post('update_tailor', [TailorController::class, 'update_tailor'])->name('update_tailor');
-Route::post('delete_tailor', [TailorController::class, 'delete_tailor'])->name('delete_tailor');
-
-
-Route::get('resale', [ResaleController::class, 'index'])->name('resale');
-Route::post('add_resale', [ResaleController::class, 'add_resale'])->name('add_resale');
-Route::get('show_resale', [ResaleController::class, 'show_resale'])->name('show_resale');
-Route::post('edit_resale', [ResaleController::class, 'edit_resale'])->name('edit_resale');
-Route::post('update_resale', [ResaleController::class, 'update_resale'])->name('update_resale');
-Route::post('delete_resale', [ResaleController::class, 'delete_resale'])->name('delete_resale');
-
-Route::post('get_images', [ResaleController::class, 'get_images'])->name('get_images');
-Route::get('show_images', [ResaleController::class, 'show_images'])->name('show_images');
-Route::post('upload_img', [ResaleController::class, 'upload_img'])->name('upload_img');
-Route::delete('delete_image', [ResaleController::class, 'delete_image'])->name('delete_image');
-Route::delete('del_img', [ResaleController::class, 'del_img'])->name('del_img');
-
+// Material
 Route::get('material', [MaterialController::class, 'index'])->name('material');
-Route::get('add_material', [MaterialController::class, 'add_material_view'])->name('add_material.view');
+Route::get('add_material', function () { return redirect()->route('view_material'); })->name('add_material.view');
 Route::post('add_material', [MaterialController::class, 'add_material'])->name('add_material');
 Route::get('material/list', [MaterialController::class, 'getmaterial']);
 Route::get('materials/all', [MaterialController::class, 'getAllMaterials'])->name('materials.all');
@@ -227,10 +133,10 @@ Route::post('update_material', [MaterialController::class, 'update_material'])->
 Route::delete('/delete_material/{id}', [MaterialController::class, 'delete_material'])->name('delete_material');
 Route::get('view_material', [MaterialController::class, 'view_material'])->name('view_material');
 Route::post('materials/add-quantity', [MaterialController::class, 'addQuantity'])->name('materials.add_quantity');
-Route::post('send_material_to_tailor', [TailorController::class, 'send_material_to_tailor'])->name('send_material_to_tailor');
 Route::get('material-quantity-audit', [MaterialController::class, 'materialQuantityAudit'])->name('material.quantity_audit');
 Route::get('material-quantity-audit/data', [MaterialController::class, 'getMaterialQuantityAuditData'])->name('material.quantity_audit.data');
 
+// Stock
 Route::get('stock', [StockController::class, 'index'])->name('stock');
 Route::post('add_stock', [StockController::class, 'add_stock'])->name('add_stock');
 Route::get('view_stock', [StockController::class, 'view_stock'])->name('view_stock');
@@ -244,12 +150,10 @@ Route::get('stock/comprehensive-audit/list', [StockController::class, 'getCompre
 Route::get('stock/material-audit', [StockController::class, 'materialAudit'])->name('material.audit');
 Route::get('stock/material-audit/data', [StockController::class, 'getMaterialAuditData'])->name('material.audit.data');
 Route::get('sync-pending-stocks', [StockController::class, 'syncPendingStocks'])->name('sync.pending_stocks');
-
 Route::get('stock/list', [StockController::class, 'getstock']);
 Route::get('stock/{id}', [StockController::class, 'show'])->name('stock.show');
 Route::get('edit_stock/{id}', [StockController::class, 'edit_stock'])->name('edit_stock');
 Route::delete('/stock/image/{id}', [StockController::class, 'deleteImage'])->name('stock.image.delete');
-
 Route::get('/fetch_stock/{id}', [StockController::class, 'fetch_stock']);
 Route::delete('stock/{id}', [StockController::class, 'destroy'])->name('stock.destroy');
 Route::get('stock_detail', [StockController::class, 'stock_detail'])->name('stock_detail');
@@ -258,124 +162,4 @@ Route::get('get_full_stock_details', [StockController::class, 'get_full_stock_de
 Route::post('add_quantity', [StockController::class, 'add_quantity'])->name('add_quantity');
 Route::get('abaya-materials', [StockController::class, 'abayaMaterials'])->name('abaya_materials');
 Route::get('abaya-materials/data', [StockController::class, 'getAbayaMaterials'])->name('abaya_materials.data');
-
-
-// api
-
 Route::get('move_stock_to_system', [StockController::class, 'move_stock_to_system'])->name('move_stock_to_system');
-
-// Tailor Payments Routes
-Route::get('tailor_payments', [App\Http\Controllers\TailorPaymentController::class, 'index'])->name('tailor_payments');
-Route::get('tailor_payments/pending', [App\Http\Controllers\TailorPaymentController::class, 'getPendingPayments'])->name('tailor_payments.pending');
-Route::get('tailor_payments/history', [App\Http\Controllers\TailorPaymentController::class, 'getPaymentHistory'])->name('tailor_payments.history');
-Route::get('tailor_payments/accounts', [App\Http\Controllers\TailorPaymentController::class, 'getAccounts'])->name('tailor_payments.accounts');
-Route::post('tailor_payments/process', [App\Http\Controllers\TailorPaymentController::class, 'processPayment'])->name('tailor_payments.process');
-
-Route::get('branch', [BranchController::class, 'index'])->name('branch');
-Route::post('add_branch', [BranchController::class, 'add_branch'])->name('add_branch');
-Route::get('show_branch', [BranchController::class, 'show_branch'])->name('show_branch');
-Route::post('edit_branch', [BranchController::class, 'edit_branch'])->name('edit_branch');
-Route::post('update_branch', [BranchController::class, 'update_branch'])->name('update_branch');
-Route::post('delete_branch', [BranchController::class, 'delete_branch'])->name('delete_branch');
-
-Route::get('send_request', [SpecialOrderController::class, 'send_request'])->name('send_request');
-Route::get('send_request/data', [SpecialOrderController::class, 'getTailorAssignmentsData'])->name('send_request.data');
-Route::post('send_request/assign', [SpecialOrderController::class, 'assignItemsToTailor'])->name('send_request.assign');
-Route::post('send_request/receive', [SpecialOrderController::class, 'markTailorItemsReceived'])->name('send_request.receive');
-Route::get('send_request/export-excel', [SpecialOrderController::class, 'exportAbayasToTailorExcel'])->name('send_request.export_excel');
-Route::get('tailor-orders-list', [SpecialOrderController::class, 'tailorOrdersList'])->name('tailor_orders_list');
-Route::get('tailor-orders-list/data', [SpecialOrderController::class, 'getTailorOrdersList'])->name('tailor_orders_list.data');
-Route::get('tailor-orders-list/export-pdf', [SpecialOrderController::class, 'exportTailorOrdersPDF'])->name('tailor_orders_list.export_pdf');
-Route::get('tailor-orders-list/export-excel', [SpecialOrderController::class, 'exportTailorOrdersExcel'])->name('tailor_orders_list.export_excel');
-
-Route::get('maintenance', [SpecialOrderController::class, 'maintenance'])->name('maintenance');
-Route::get('maintenance/data', [SpecialOrderController::class, 'getMaintenanceData'])->name('maintenance.data');
-Route::get('maintenance/history', [SpecialOrderController::class, 'getRepairHistory'])->name('maintenance.history');
-Route::get('maintenance/payment-history', [SpecialOrderController::class, 'getMaintenancePaymentHistory'])->name('maintenance.payment_history');
-Route::get('maintenance/search-delivered', [SpecialOrderController::class, 'searchDeliveredOrders'])->name('maintenance.search_delivered');
-Route::get('maintenance/order-items', [SpecialOrderController::class, 'getDeliveredOrderItems'])->name('maintenance.order_items');
-Route::post('maintenance/send-repair', [SpecialOrderController::class, 'sendForRepair'])->name('maintenance.send_repair');
-Route::post('maintenance/receive', [SpecialOrderController::class, 'receiveFromTailor'])->name('maintenance.receive');
-Route::post('maintenance/deliver', [SpecialOrderController::class, 'markRepairedDelivered'])->name('maintenance.deliver');
-
-Route::get('spcialorder', [SpecialOrderController::class, 'index'])->name('spcialorder');
-Route::post('add_spcialorder', [SpecialOrderController::class, 'add_specialorder'])->name('add_spcialorder');
-Route::post('special-order/shipping-fee', [SpecialOrderController::class, 'getShippingFee'])->name('special_order.shipping_fee');
-Route::get('view_special_order', [SpecialOrderController::class, 'view_special_order'])->name('view_special_order');
-Route::get('special-order-bill/{id}', [SpecialOrderController::class, 'showBill'])->name('special_order.bill');
-Route::get('get_orders_list', [SpecialOrderController::class, 'getOrdersList'])->name('get_orders_list');
-Route::post('record_payment', [SpecialOrderController::class, 'recordPayment'])->name('record_payment');
-Route::post('update_delivery_status', [SpecialOrderController::class, 'updateDeliveryStatus'])->name('update_delivery_status');
-Route::post('delete_order', [SpecialOrderController::class, 'deleteOrder'])->name('delete_order');
-Route::post('edit_spcialorder', [SpecialOrderController::class, 'edit_spcialorder'])->name('edit_spcialorder');
-Route::post('update_spcialorder', [SpecialOrderController::class, 'update_spcialorder'])->name('update_spcialorder');
-Route::post('delete_spcialorder', [SpecialOrderController::class, 'delete_spcialorder'])->name('delete_spcialorder');
-Route::get('search_abayas', [SpecialOrderController::class, 'searchAbayas'])->name('search_abayas');
-Route::get('send_request/export-pdf', [SpecialOrderController::class, 'exportAbayasToTailorPDF'])->name('send_request.export_pdf');
-
-Route::get('wharehouse', [WharehouseController::class, 'index'])->name('wharehouse');
-Route::post('add_wharehouse', [WharehouseController::class, 'add_wharehouse'])->name('add_wharehouse');
-Route::get('show_wharehouse', [WharehouseController::class, 'show_wharehouse'])->name('show_wharehouse');
-Route::post('edit_wharehouse', [WharehouseController::class, 'edit_wharehouse'])->name('edit_wharehouse');
-Route::post('update_wharehouse', [WharehouseController::class, 'update_wharehouse'])->name('update_wharehouse');
-Route::post('delete_wharehouse', [WharehouseController::class, 'delete_wharehouse'])->name('delete_wharehouse');
-Route::get('manage_quantity', [WharehouseController::class, 'manage_quantity'])->name('manage_quantity');
-Route::get('movements_log', [WharehouseController::class, 'movements_log'])->name('movements_log');
-Route::get('get_inventory', [WharehouseController::class, 'get_inventory'])->name('get_inventory');
-Route::get('get_channel_inventory', [WharehouseController::class, 'get_channel_inventory'])->name('get_channel_inventory');
-Route::post('execute_transfer', [WharehouseController::class, 'execute_transfer'])->name('execute_transfer');
-Route::get('get_transfer_history', [WharehouseController::class, 'get_transfer_history'])->name('get_transfer_history');
-Route::get('export_transfers_excel', [WharehouseController::class, 'export_transfers_excel'])->name('export_transfers_excel');
-Route::get('get_channel_stocks', [WharehouseController::class, 'get_channel_stocks'])->name('get_channel_stocks');
-Route::get('get_settlement_data', [WharehouseController::class, 'get_settlement_data'])->name('get_settlement_data');
-Route::get('get_settlement_transfer_details', [WharehouseController::class, 'get_settlement_transfer_details'])->name('get_settlement_transfer_details');
-Route::get('get_settlement_history', [WharehouseController::class, 'get_settlement_history'])->name('get_settlement_history');
-Route::get('get_settlement_details', [WharehouseController::class, 'get_settlement_details'])->name('get_settlement_details');
-Route::post('save_settlement', [WharehouseController::class, 'save_settlement'])->name('save_settlement');
-Route::get('get_boutiques_list', [WharehouseController::class, 'get_boutiques_list'])->name('get_boutiques_list');
-Route::get('get_stats', [WharehouseController::class, 'get_stats'])->name('get_stats');
-Route::get('settlement', [WharehouseController::class, 'settlement'])->name('settlement');
-Route::get('get_website_current_qty', [WharehouseController::class, 'get_website_current_qty'])->name('get_website_current_qty');
-
-
-// Bulk: sync ALL transfer_items where to_location=channel-1 and stock.website_data_delivery_status=1
-Route::match(['get', 'post'], 'sync-transfer-items', [
-    WharehouseController::class,
-    'syncPendingTransferItemsToWebsite'
-])->name('sync.transfer.items');
-Route::get('pos', [PosController::class, 'index'])->name('pos');
-Route::get('pos/stock/{id}', [PosController::class, 'getStockDetails'])->name('pos.stock.details');
-Route::get('pos/customers', [PosController::class, 'searchCustomers'])->name('pos.customers.search');
-Route::post('pos/orders', [PosController::class, 'store'])->name('pos.orders.store');
-Route::post('pos/shipping-fee', [PosController::class, 'getShippingFee'])->name('pos.shipping_fee');
-Route::get('pos/cities', [PosController::class, 'citiesByArea'])->name('pos.cities.by_area');
-Route::get('pos/orders/list', [PosController::class, 'ordersList'])->name('pos.orders.list');
-Route::get('pos/orders/list/data', [PosController::class, 'getOrdersList'])->name('pos.orders.list.data');
-Route::post('pos/orders/update-delivery-status', [PosController::class, 'updateDeliveryStatus'])->name('pos.orders.update_delivery_status');
-Route::get('pos/active-channels', [PosController::class, 'getActiveChannels'])->name('pos.active_channels');
-Route::post('pos/select-channel', [PosController::class, 'selectChannel'])->name('pos.select_channel');
-Route::get('pos_bill', [PosController::class, 'pos_bill'])->name('pos_bill');
-
-Route::get('receive_website_orders', [WharehouseController::class, 'receiveWebsiteOrders'])->name('receive_website_orders');
-
-// Reports Routes
-Route::get('reports/pos-income', [ReportController::class, 'posIncomeReport'])->name('reports.pos_income');
-Route::get('reports/pos-income/data', [ReportController::class, 'getPosIncomeReport'])->name('reports.pos_income.data');
-Route::get('reports/pos-income/export-excel', [ReportController::class, 'exportPosIncomeExcel'])->name('reports.pos_income.export_excel');
-Route::get('reports/pos-income/export-pdf', [ReportController::class, 'exportPosIncomePdf'])->name('reports.pos_income.export_pdf');
-
-Route::get('reports/special-orders-income', [ReportController::class, 'specialOrdersIncomeReport'])->name('reports.special_orders_income');
-Route::get('reports/special-orders-income/data', [ReportController::class, 'getSpecialOrdersIncomeReport'])->name('reports.special_orders_income.data');
-Route::get('reports/special-orders-income/export-excel', [ReportController::class, 'exportSpecialOrdersIncomeExcel'])->name('reports.special_orders_income.export_excel');
-Route::get('reports/special-orders-income/export-pdf', [ReportController::class, 'exportSpecialOrdersIncomePdf'])->name('reports.special_orders_income.export_pdf');
-
-Route::get('reports/settlement-profit', [ReportController::class, 'settlementProfitReport'])->name('reports.settlement_profit');
-Route::get('reports/settlement-profit/data', [ReportController::class, 'getSettlementProfitReport'])->name('reports.settlement_profit.data');
-Route::get('reports/settlement-profit/export-excel', [ReportController::class, 'exportSettlementProfitExcel'])->name('reports.settlement_profit.export_excel');
-Route::get('reports/settlement-profit/export-pdf', [ReportController::class, 'exportSettlementProfitPdf'])->name('reports.settlement_profit.export_pdf');
-Route::get('reports/profit-expense', [ReportController::class, 'profitExpenseReport'])->name('reports.profit_expense');
-Route::get('reports/profit-expense/data', [ReportController::class, 'getProfitExpenseReport'])->name('reports.profit_expense.data');
-Route::get('reports/daily-sales', [ReportController::class, 'dailySalesReport'])->name('reports.daily_sales');
-Route::get('reports/daily-sales/data', [ReportController::class, 'getDailySalesReport'])->name('reports.daily_sales.data');
-Route::get('reports/daily-sales/export-excel', [ReportController::class, 'exportDailySalesExcel'])->name('reports.daily_sales.export_excel');
-Route::get('yearly_income_report', [ReportController::class, 'yearlyIncomeReport'])->name('reports.yearly_income_report');

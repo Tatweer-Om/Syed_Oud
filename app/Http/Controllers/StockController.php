@@ -23,7 +23,6 @@ use App\Models\MaterialAuditLog;
 use App\Models\MaterialQuantityAudit;
 use App\Models\TailorPaymentItem;
 use App\Models\Customer;
-use App\Services\StockWebsiteSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
@@ -2438,42 +2437,14 @@ public function add_quantity(Request $request)
     }
 
     /**
-     * Test website sync and display payload/response in print_r format
-     * Useful for debugging what's being sent to the API
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\Response
+     * Test website sync - simplified (StockWebsiteSyncService removed)
      */
     public function testWebsiteSync(Request $request)
     {
-        $stockId = $request->input('stock_id');
-        
-        if (!$stockId) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Stock ID is required'
-            ], 400);
-        }
-
-        $syncService = new StockWebsiteSyncService();
-        $result = $syncService->testSync($stockId);
-
-        // Return as JSON with formatted output
         return response()->json([
-            'success' => true,
-            'data' => $result,
-            'formatted_output' => [
-                'api_url' => $result['api_url'],
-                'payload' => $result['payload'],
-                'response_status' => $result['response_status'],
-                'response_body' => $result['response_body'],
-                'response_data' => $result['response_data'],
-                'success' => $result['success'],
-                'error' => $result['error'],
-            ],
-            'print_r_payload' => print_r($result['payload'], true),
-            'print_r_response' => print_r($result['response_data'], true),
-        ]);
+            'success' => false,
+            'message' => 'Website sync service is not available'
+        ], 501);
     }
 
     /**

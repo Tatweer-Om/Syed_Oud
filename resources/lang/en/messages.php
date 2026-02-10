@@ -1434,6 +1434,19 @@ return [
     'all_stock_items_will_be_displayed' => 'All stock items will be displayed.',
     'stock_items_available' => 'Stock Items Available',
 
+    // Supplier Module
+    'supplier' => 'Supplier',
+    'suppliers' => 'Suppliers',
+    'manage_suppliers' => 'Manage Suppliers',
+    'add_new_supplier' => 'Add New Supplier',
+    'edit_supplier' => 'Edit Supplier',
+    'total_suppliers' => 'Total Suppliers',
+    'search_supplier' => 'Search supplier...',
+    'supplier_name' => 'Supplier Name',
+    'supplier_name_placeholder' => 'Enter supplier name',
+    'phone_placeholder' => 'Enter phone number',
+    'enter_supplier_name' => 'Please enter the supplier name',
+
     // Channel Profile
     'channel_profile' => 'Channel Profile',
     'transfers' => 'Transfers',

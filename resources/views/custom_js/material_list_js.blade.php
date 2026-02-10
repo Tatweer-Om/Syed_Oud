@@ -327,6 +327,73 @@ $(document).ready(function() {
         });
     });
 
+    // ------------------ Add Material Modal (popup) ------------------
+    $('#openAddMaterialModal').on('click', function() {
+        $('#addMaterialModal').removeClass('hidden');
+        $('#addMaterialModalForm')[0].reset();
+        $('#popup_material_name').focus();
+    });
+
+    $('#closeAddMaterialModal, #cancelAddMaterialBtn').on('click', function() {
+        $('#addMaterialModal').addClass('hidden');
+        $('#addMaterialModalForm')[0].reset();
+    });
+
+    $(document).on('click', '#addMaterialModal', function(e) {
+        if ($(e.target).attr('id') === 'addMaterialModal') {
+            $('#addMaterialModal').addClass('hidden');
+            $('#addMaterialModalForm')[0].reset();
+        }
+    });
+
+    $('#addMaterialModalForm').on('submit', function(e) {
+        e.preventDefault();
+        var material_name = $('#popup_material_name').val().trim();
+        var material_unit = $('#popup_material_unit').val();
+        if (!material_name) {
+            show_notification('error', '<?= addslashes(trans("messages.enter_material_name", [], session("locale"))) ?>');
+            return;
+        }
+        if (!material_unit) {
+            show_notification('error', '<?= addslashes(trans("messages.enter_material_unit", [], session("locale"))) ?>');
+            return;
+        }
+        var $form = $(this);
+        var $btn = $form.find('button[type="submit"]');
+        var origText = $btn.html();
+        $btn.prop('disabled', true).html('...');
+        $.ajax({
+            url: "{{ route('add_material') }}",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}',
+                material_name: material_name,
+                material_unit: material_unit,
+                purchase_price: $('#popup_purchase_price').val() || 0,
+                material_notes: $('#popup_material_notes').val() || ''
+            },
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            success: function(response) {
+                if (response.status === 'success') {
+                    show_notification('success', response.message);
+                    $('#addMaterialModal').addClass('hidden');
+                    $('#addMaterialModalForm')[0].reset();
+                    loadmaterial(currentPage, currentMaterialId, currentSearch);
+                }
+                $btn.prop('disabled', false).html(origText);
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html(origText);
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    var msg = Object.values(xhr.responseJSON.errors).flat().join(' ');
+                    show_notification('error', msg);
+                } else {
+                    show_notification('error', '{{ __("messages.error") ?: "Something went wrong" }}');
+                }
+            }
+        });
+    });
+
     // ------------------ Initial Load ------------------
     loadmaterial();
 });

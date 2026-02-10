@@ -36,12 +36,13 @@ public function getmaterial()
 
   public function add_material(Request $request)
 {
-    // Validate input
+    // Validate input (popup form: name, unit, purchase price, notes only)
     $request->validate([
         'material_name' => 'required|string|max:255',
         'material_unit' => 'required|string',
-        'material_category' => 'required|string',
         'purchase_price' => 'nullable|numeric|min:0',
+        'material_notes' => 'nullable|string',
+        'material_category' => 'nullable|string',
         'sale_price' => 'nullable|numeric|min:0',
         'meters_pieces' => 'nullable|numeric|min:0',
         'material_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -59,15 +60,14 @@ public function getmaterial()
         $request->file('material_image')->move($folderPath, $material_image);
     }
 
-    // Save material
+    // Save material (only name, unit, purchase price, notes from popup; defaults for rest)
     $material = new Material();
     $material->material_name   = $request->material_name;
-    $material->description     = $request->material_notes;
+    $material->description     = $request->material_notes ?? null;
     $material->unit            = $request->material_unit;
-    $material->category        = $request->material_category;
-    $material->buy_price       = $request->purchase_price;
+    $material->category        = $request->material_category ?? 'general';
+    $material->buy_price       = $request->purchase_price ?? 0;
     $material->sell_price      = $request->sale_price ?? '1';
-    // Store total meters/pieces in meters_per_roll, set rolls_count to 1
     $metersPieces = $request->meters_pieces ?? 0;
     $material->rolls_count     = 1;
     $material->meters_per_roll = $metersPieces;
