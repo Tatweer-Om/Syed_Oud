@@ -48,6 +48,8 @@
          @include('custom_js.edit_stock_js')
           @elseif ($route_name == 'view_material')
          @include('custom_js.material_list_js')
+          @elseif ($route_name == 'view_units')
+         @include('custom_js.unit_list_js')
            @elseif ($route_name == 'edit_material')
          @include('custom_js.edit_material_js')
           @elseif ($route_name == 'spcialorder')
