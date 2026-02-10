@@ -15,6 +15,7 @@ use App\Http\Controllers\SMSController;
 use App\Http\Controllers\SizeController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\UnitController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -81,6 +82,14 @@ Route::put('sizes/{size}', [SizeController::class, 'update']);
 Route::delete('sizes/{size}', [SizeController::class, 'destroy']);
 Route::get('sizes/list', [SizeController::class, 'getSizes']);
 Route::get('sizes/{size}', [SizeController::class, 'show']);
+
+// Units
+Route::get('view_units', [UnitController::class, 'index'])->name('view_units');
+Route::get('units/list', [UnitController::class, 'getUnits']);
+Route::get('units/all', [UnitController::class, 'getAllUnits']);
+Route::post('units', [UnitController::class, 'store']);
+Route::put('units/{unit}', [UnitController::class, 'update']);
+Route::delete('units/{unit}', [UnitController::class, 'destroy']);
 
 // Expense Category
 Route::get('expense-categories', [ExpenseCategoryController::class, 'index'])->name('expense_category');
