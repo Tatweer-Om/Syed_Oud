@@ -10,11 +10,11 @@ class SpecialOrderItem extends Model
     protected $fillable = [
         'special_order_id',
         'stock_id',
-        'abaya_code',
+        'stock_code',
         'design_name',
         'quantity',
         'price',
-        'abaya_length',
+        'stock_length',
         'bust',
         'sleeves_length',
         'buttons',
@@ -43,7 +43,7 @@ class SpecialOrderItem extends Model
     protected $casts = [
         'quantity' => 'integer',
         'price' => 'decimal:3',
-        'abaya_length' => 'decimal:2',
+        'stock_length' => 'decimal:2',
         'bust' => 'decimal:2',
         'sleeves_length' => 'decimal:2',
         'buttons' => 'boolean',
@@ -67,7 +67,7 @@ class SpecialOrderItem extends Model
     }
 
     /**
-     * Get the stock/abaya reference
+     * Get the stock/stock reference
      */
     public function stock(): BelongsTo
     {

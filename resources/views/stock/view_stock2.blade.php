@@ -12,12 +12,12 @@
     <!-- Page title and add button -->
   <div class="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center gap-4 mb-6">
     <h2 class="text-gray-900 text-2xl sm:text-3xl font-bold">
-        {{ trans('messages.manage_abayas', [], session('locale')) }}
+        {{ trans('messages.manage_stocks', [], session('locale')) }}
     </h2>
-    <a href="/abaya/view_abaya.php"
+    <a href="/stock/view_stock.php"
        class="inline-flex items-center justify-center h-11 px-5 rounded-lg bg-[var(--primary-color)] text-white text-sm sm:text-base font-bold shadow hover:shadow-lg hover:scale-[1.02] transition-all duration-200">
         <span class="material-symbols-outlined me-1">add</span>
-        {{ trans('messages.add_abaya', [], session('locale')) }}
+        {{ trans('messages.add_stock', [], session('locale')) }}
     </a>
 </div>
 
@@ -53,7 +53,7 @@
             <div class="flex gap-4">
                 <div class="w-20 h-24 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                     <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvKg5AhaDdRqA3r4CQmvGTzP9_cvocRFo_JpwXjGANrU-NTxnLJbPXHosBJvcOJrOMF7iniPDAqlDISIoKa9vYPlxQl1fxFUf_wWcg-2ZWZ4zVtj8DtYntIcmMCef6Gi9kc2-SNeJuOFhmVe3ktBod2zxXdlJVBktsokamFz6WtCj96iytmlQLinBdB_5yxzeepfYJBESQ9mj3dmkh_xJ9jv55Un9VL_VDKXordI9gSug-gM3t_dTLQp4G7Bzh8K5I0OZICpGkG5M"
-                         alt="{{ trans('messages.abaya_image', [], session('locale')) }}" class="w-full h-full object-cover" />
+                         alt="{{ trans('messages.stock_image', [], session('locale')) }}" class="w-full h-full object-cover" />
                 </div>
                 <div class="flex-1 text-sm">
                     <div class="flex justify-between items-center">
@@ -175,7 +175,7 @@
          class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl transform transition-all duration-300 overflow-hidden">
       <!-- Header -->
       <div class="flex justify-between items-center p-4 border-b">
-        <h2 class="text-lg sm:text-xl font-bold text-[var(--primary-color)]">تفاصيل العباية</h2>
+        <h2 class="text-lg sm:text-xl font-bold text-[var(--primary-color)]">تفاصيل المخزون</h2>
         <button @click="showDetails = false" class="text-gray-400 hover:text-gray-600">
           <span class="material-symbols-outlined text-2xl">close</span>
         </button>
@@ -192,7 +192,7 @@
           <div class="space-y-2">
             <p><span class="font-semibold">الكود:</span> ABY101</p>
             <p><span class="font-semibold">النوع:</span> خليجية فاخرة</p>
-            <p><span class="font-semibold">الوصف:</span> عباية متعددة المقاسات والألوان.</p>
+            <p><span class="font-semibold">الوصف:</span> مخزون متعددة المقاسات والألوان.</p>
             <p><span class="font-semibold">الحالة:</span> <span class="text-green-600 font-bold">متوفرة</span></p>
           </div>
         </div>
@@ -283,7 +283,7 @@
          class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl transform transition-all duration-300 overflow-hidden">
 
       <div class="flex justify-between items-center p-4 border-b">
-        <h2 class="text-lg font-bold text-[var(--primary-color)]">إدارة كميات العباية</h2>
+        <h2 class="text-lg font-bold text-[var(--primary-color)]">إدارة كميات المخزون</h2>
         <button @click="showQuantity = false" class="text-gray-400 hover:text-gray-600">
           <span class="material-symbols-outlined text-2xl">close</span>
         </button>

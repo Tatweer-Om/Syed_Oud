@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AbayaMaterial extends Model
+class stockMaterial extends Model
 {
-    protected $table = 'abaya_materials';
+    protected $table = 'stock_materials';
     
     protected $fillable = [
-        'abaya_id',
-        'abaya_barcode',
+        'stock_id',
+        'stock_barcode',
         'materials',
     ];
 
@@ -20,10 +20,10 @@ class AbayaMaterial extends Model
     ];
 
     /**
-     * Get the abaya/stock associated with this material assignment
+     * Get the stock/stock associated with this material assignment
      */
-    public function abaya(): BelongsTo
+    public function stock(): BelongsTo
     {
-        return $this->belongsTo(Stock::class, 'abaya_id');
+        return $this->belongsTo(Stock::class, 'stock_id');
     }
 }

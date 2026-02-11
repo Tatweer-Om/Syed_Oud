@@ -110,8 +110,8 @@ class HomeController extends Controller
                     
                     $lowStockItems[] = [
                         'id' => $stock->id,
-                        'abaya_code' => $stock->abaya_code ?? 'N/A',
-                        'design_name' => $stock->design_name ?? $stock->abaya_code ?? 'N/A',
+                        'stock_code' => $stock->stock_code ?? 'N/A',
+                        'design_name' => $stock->design_name ?? $stock->stock_code ?? 'N/A',
                         'remaining' => $totalQty,
                         'threshold' => $lowStockThreshold,
                         'percentage' => min($percentage, 100),
@@ -155,14 +155,14 @@ class HomeController extends Controller
                     (session('locale') === 'ar' ? $stock->category->category_name_ar : $stock->category->category_name_en) : 
                     'N/A';
                 
-                $stockName = $stock->design_name ?? $stock->abaya_code ?? 'N/A';
+                $stockName = $stock->design_name ?? $stock->stock_code ?? 'N/A';
                 $quantityText = str_replace(':quantity', (string)$stock->quantity, trans('messages.remaining_quantity_pieces', [], session('locale')));
                 
                 $notifications[] = [
                     'type' => 'low_stock',
                     'icon' => 'inventory',
                     'iconColor' => 'text-amber-500',
-                    'title' => trans('messages.low_abaya_stock', [], session('locale')),
+                    'title' => trans('messages.low_stock_stock', [], session('locale')),
                     'message' => $stockName . ' (' . $categoryName . ') - ' . $quantityText,
                     'time' => $stock->updated_at ? $stock->updated_at->diffForHumans() : '',
                     'link' => url('view_stock')

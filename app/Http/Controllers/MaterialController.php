@@ -39,42 +39,27 @@ public function getmaterial()
     // Validate input (popup form: name, unit, purchase price, notes only)
     $request->validate([
         'material_name' => 'required|string|max:255',
+        'material_type' => 'nullable|string|in:production,packaging',
         'material_unit' => 'required|string',
+        'quantity' => 'nullable|numeric|min:0',
         'purchase_price' => 'nullable|numeric|min:0',
         'material_notes' => 'nullable|string',
-        'material_category' => 'nullable|string',
-        'sale_price' => 'nullable|numeric|min:0',
-        'meters_pieces' => 'nullable|numeric|min:0',
-        'material_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+  
+    
     ]);
 
     $user = Auth::user();
 
-    $material_image = null;
-    if ($request->hasFile('material_image')) {
-        $folderPath = public_path('images/materials');
 
-       if (!File::isDirectory($folderPath)) { File::makeDirectory($folderPath, 0777, true, true); }
-
-        $material_image = time() . '.' . $request->file('material_image')->extension();
-        $request->file('material_image')->move($folderPath, $material_image);
-    }
-
-    // Save material (only name, unit, purchase price, notes from popup; defaults for rest)
     $material = new Material();
     $material->material_name   = $request->material_name;
+    $material->material_type   = $request->material_type ?? 'production';
     $material->description     = $request->material_notes ?? null;
     $material->unit            = $request->material_unit;
-    $material->category        = $request->material_category ?? 'general';
-    $material->buy_price       = $request->purchase_price ?? 0;
-    $material->sell_price      = $request->sale_price ?? '1';
-    $metersPieces = $request->meters_pieces ?? 0;
-    $material->rolls_count     = 1;
-    $material->meters_per_roll = $metersPieces;
-    $material->material_image  = $material_image;
+    $material->unit_price      = $request->purchase_price ?? 0;
+    $quantity = floatval($request->quantity ?? $request->meters_pieces ??   0);
     $material->added_by        = $user ? ($user->user_name ?? $user->name ?? 'system') : 'system';
     $material->user_id         = $user ? $user->id : 1;
-
     $material->save();
 
     // Calculate initial quantity based on unit
@@ -126,8 +111,10 @@ public function getmaterial()
     $request->validate([
         'material_id' => 'required|exists:materials,id',
         'material_name' => 'required|string|max:255',
+        'material_type' => 'nullable|string|in:production,packaging',
         'material_unit' => 'required|string',
-        'material_category' => 'required|string',
+        'material_category' => 'nullable|string',
+        'quantity' => 'nullable|numeric|min:0',
         'purchase_price' => 'nullable|numeric|min:0',
         'sale_price' => 'nullable|numeric|min:0',
         'meters_pieces' => 'nullable|numeric|min:0',
@@ -148,15 +135,20 @@ public function getmaterial()
 
     // Update fields
     $material->material_name   = $request->material_name;
-    $material->description     = $request->material_notes;
+    $material->material_type   = $request->material_type ?? $material->material_type ?? 'production';
+    $material->description     = $request->material_notes ?? $material->description;
     $material->unit            = $request->material_unit;
-    $material->category        = $request->material_category;
-    $material->buy_price       = $request->purchase_price;
-    $material->sell_price      = $request->sale_price ?? '1';
-    // Store total meters/pieces in meters_per_roll, set rolls_count to 1
-    $metersPieces = $request->meters_pieces ?? 0;
-    $material->rolls_count     = 1;
-    $material->meters_per_roll = $metersPieces;
+    $material->category        = $request->material_category ?? $material->category ?? 'general';
+    $material->buy_price       = $request->purchase_price ?? $material->buy_price;
+    $material->sell_price      = $request->sale_price ?? $material->sell_price ?? '1';
+    $quantity = floatval($request->quantity ?? $request->meters_pieces ?? 0);
+    if (($request->material_unit ?? '') === 'roll') {
+        $material->rolls_count     = max(0, $quantity);
+        $material->meters_per_roll = 1;
+    } else {
+        $material->rolls_count     = 1;
+        $material->meters_per_roll = max(0, $quantity);
+    }
 
     // Keep track of user
     $material->added_by = $user->name ?? 'system';
@@ -229,7 +221,22 @@ public function getAllMaterials()
     return response()->json($materials);
 }
 
-public function getMaterial33($id)
+/** Materials for purchase page select (id, name, unit, buy_price) */
+    public function getMaterialsForPurchase()
+    {
+        return Material::orderBy('material_name', 'ASC')
+            ->get(['id', 'material_name', 'unit', 'buy_price'])
+            ->map(function ($m) {
+                return [
+                    'id' => $m->id,
+                    'material_name' => $m->material_name,
+                    'unit' => $m->unit ?? '-',
+                    'buy_price' => $m->buy_price ?? 0,
+                ];
+            });
+    }
+
+    public function getMaterial33($id)
 {
     $material = Material::find($id);
     
@@ -410,7 +417,7 @@ public function getMaterialQuantityAuditData(Request $request)
                 'id' => $audit->id,
                 'date' => $audit->created_at->format('Y-m-d H:i:s'),
                 'material_name' => $audit->material_name,
-                'abaya_code' => $audit->abaya_code,
+                'stock_code' => $audit->stock_code,
                 'source' => $audit->source,
                 'source_label' => $this->getSourceLabel($audit->source),
                 'special_order_number' => $audit->special_order_number ?? null,

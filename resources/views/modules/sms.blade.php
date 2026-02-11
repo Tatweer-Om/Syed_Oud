@@ -63,17 +63,17 @@
                                 class="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-colors">
                                 {customer_phone_number}
                             </button>
-                            <button type="button" onclick="insertVariable('{abaya_name}')" 
+                            <button type="button" onclick="insertVariable('{stock_name}')" 
                                 class="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-colors">
-                                {abaya_name}
+                                {stock_name}
                             </button>
-                            <button type="button" onclick="insertVariable('{abaya_code}')" 
+                            <button type="button" onclick="insertVariable('{stock_code}')" 
                                 class="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-colors">
-                                {abaya_code}
+                                {stock_code}
                             </button>
-                            <button type="button" onclick="insertVariable('{abaya_category}')" 
+                            <button type="button" onclick="insertVariable('{stock_category}')" 
                                 class="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-colors">
-                                {abaya_category}
+                                {stock_category}
                             </button>
                             <button type="button" onclick="insertVariable('{color}')" 
                                 class="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-colors">
@@ -83,9 +83,9 @@
                                 class="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-colors">
                                 {size}
                             </button>
-                            <button type="button" onclick="insertVariable('{abaya_length}')" 
+                            <button type="button" onclick="insertVariable('{stock_length}')" 
                                 class="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-colors">
-                                {abaya_length}
+                                {stock_length}
                             </button>
                             <button type="button" onclick="insertVariable('{bust}')" 
                                 class="px-3 py-2 text-xs bg-white border border-gray-300 rounded-lg hover:bg-[var(--primary-color)] hover:text-white hover:border-[var(--primary-color)] transition-colors">

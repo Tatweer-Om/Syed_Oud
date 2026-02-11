@@ -13,18 +13,17 @@ return new class extends Migration
     {
         Schema::create('stocks', function (Blueprint $table) {
             $table->id();
-            $table->string('abaya_code')->nullable();
-            $table->string('design_name')->nullable();
+            $table->string('stock_name')->nullable();
+            $table->unsignedBigInteger('category_id')->nullable();
             $table->string('barcode')->nullable();
-            $table->longText('abaya_notes')->nullable();
+             $table->string('image')->nullable();
+            $table->longText('stock_notes')->nullable();
             $table->decimal('cost_price', 10, 3)->nullable();
             $table->decimal('sales_price', 10, 3)->nullable();
-            $table->decimal('tailor_charges', 10, 3)->nullable();
-            $table->string('tailor_id')->nullable();
+            $table->decimal('discount', 10, 3)->nullable();
+            $table->decimal('tax', 10, 3)->nullable();
             $table->string('quantity')->nullable();
-            $table->string('status')->nullable();
             $table->integer('notification_limit')->nullable();
-            $table->string('mode')->nullable();
             $table->string('added_by')->nullable();
             $table->string('updated_by')->nullable();
             $table->string('user_id')->nullable();

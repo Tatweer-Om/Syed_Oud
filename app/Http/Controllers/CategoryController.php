@@ -23,7 +23,6 @@ class CategoryController extends Controller
         $user = Auth::user();
 
         $category = new Category();
-        $category->abaya = false; // Default to false
         $category->category_name = $request->category_name;
         $category->category_name_ar = $request->category_name_ar;
         $category->notes = $request->notes;

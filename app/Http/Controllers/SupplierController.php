@@ -18,6 +18,12 @@ class SupplierController extends Controller
         return Supplier::orderBy('id', 'DESC')->paginate(10);
     }
 
+    /** All suppliers for searchable select (e.g. purchase page) */
+    public function getAllSuppliers()
+    {
+        return Supplier::orderBy('supplier_name', 'ASC')->get(['id', 'supplier_name', 'phone']);
+    }
+
     public function getTotalCount()
     {
         return response()->json(['count' => Supplier::count()]);
