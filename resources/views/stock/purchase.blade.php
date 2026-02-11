@@ -61,16 +61,22 @@
           <!-- Supplier (searchable) -->
           <div class="flex flex-col">
             <label class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.supplier', [], session('locale')) }}</label>
-            <div class="purchase-supplier-wrap">
-              <input type="text"
-                     id="supplier_search"
-                     autocomplete="off"
-                     placeholder="{{ trans('messages.search_supplier', [], session('locale')) }}"
-                     class="h-11 w-full rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
-              <input type="hidden" id="supplier_id" name="supplier_id" value="" />
-              <div id="supplier_dropdown" class="purchase-supplier-dropdown"></div>
+            <div class="flex gap-1">
+              <div class="purchase-supplier-wrap flex-1">
+                <input type="text"
+                       id="supplier_search"
+                       autocomplete="off"
+                       placeholder="{{ trans('messages.search_supplier', [], session('locale')) }}"
+                       class="h-11 w-full rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
+                <input type="hidden" id="supplier_id" name="supplier_id" value="" />
+                <div id="supplier_dropdown" class="purchase-supplier-dropdown"></div>
+              </div>
+              <button type="button" id="purchase_add_supplier_btn" class="flex-shrink-0 h-11 w-11 rounded-lg border border-gray-300 bg-gray-50 hover:bg-primary hover:text-white hover:border-primary flex items-center justify-center transition" title="{{ trans('messages.add_new_supplier', [], session('locale')) }}">
+                <span class="material-symbols-outlined text-xl">add</span>
+              </button>
             </div>
           </div>
+          <input type="hidden" name="invoice_amount" id="invoice_amount" value="0" />
           <!-- Invoice number -->
           <label class="flex flex-col">
             <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.invoice_number', [], session('locale')) }}</span>
@@ -78,18 +84,6 @@
                    name="invoice_number"
                    id="invoice_number"
                    placeholder="{{ trans('messages.invoice_number_placeholder', [], session('locale')) }}"
-                   class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
-          </label>
-          <!-- Invoice amount (editable - user can enter amount) -->
-          <label class="flex flex-col">
-            <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.invoice_amount', [], session('locale')) }}</span>
-            <input type="number"
-                   name="invoice_amount"
-                   id="invoice_amount"
-                   min="0"
-                   step="0.01"
-                   value="0"
-                   placeholder="0.00"
                    class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
           </label>
           <!-- Shipping cost -->
@@ -171,6 +165,47 @@
           {{ trans('messages.save', [], session('locale')) }}
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Add Supplier Modal -->
+  <div id="purchaseAddSupplierModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+      <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+        <h2 class="text-xl font-bold text-gray-800">{{ trans('messages.add_new_supplier', [], session('locale')) }}</h2>
+        <button type="button" id="purchaseCloseSupplierModal" class="p-1 text-gray-500 hover:text-gray-700 rounded hover:bg-gray-100">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="purchaseAddSupplierForm" class="p-6 space-y-4">
+        @csrf
+        <label class="block">
+          <span class="text-sm font-semibold text-gray-700">{{ trans('messages.supplier_name', [], session('locale')) }} <span class="text-red-500">*</span></span>
+          <input type="text" name="supplier_name" id="purchase_supplier_name" required
+                 placeholder="{{ trans('messages.supplier_name_placeholder', [], session('locale')) }}"
+                 class="mt-1 block w-full h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary" />
+        </label>
+        <label class="block">
+          <span class="text-sm font-semibold text-gray-700">{{ trans('messages.phone', [], session('locale')) }}</span>
+          <input type="text" name="phone" id="purchase_supplier_phone"
+                 placeholder="{{ trans('messages.phone_placeholder', [], session('locale')) }}"
+                 class="mt-1 block w-full h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary" />
+        </label>
+        <label class="block">
+          <span class="text-sm font-semibold text-gray-700">{{ trans('messages.notes', [], session('locale')) }}</span>
+          <textarea name="notes" id="purchase_supplier_notes" rows="3"
+                    placeholder="{{ trans('messages.notes_placeholder', [], session('locale')) }}"
+                    class="mt-1 block w-full rounded-lg px-4 py-2 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary"></textarea>
+        </label>
+        <div class="flex gap-3 pt-2">
+          <button type="button" id="purchaseCancelSupplierBtn" class="flex-1 h-11 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50">
+            {{ trans('messages.cancel', [], session('locale')) }}
+          </button>
+          <button type="submit" class="flex-1 h-11 rounded-xl bg-[var(--primary-color)] text-white font-bold hover:opacity-90">
+            {{ trans('messages.save', [], session('locale')) }}
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </main>

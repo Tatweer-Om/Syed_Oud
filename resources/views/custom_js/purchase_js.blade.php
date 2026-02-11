@@ -74,6 +74,57 @@ $(document).ready(function() {
         if (!$(e.target).closest('.purchase-supplier-wrap').length) $dropdown.removeClass('show');
     });
 
+    // ---------- Add Supplier from purchase page ----------
+    var $addSupplierModal = $('#purchaseAddSupplierModal');
+    var $addSupplierForm = $('#purchaseAddSupplierForm');
+
+    $('#purchase_add_supplier_btn').on('click', function() {
+        $addSupplierForm[0].reset();
+        $addSupplierModal.removeClass('hidden');
+    });
+    $('#purchaseCloseSupplierModal, #purchaseCancelSupplierBtn').on('click', function() {
+        $addSupplierModal.addClass('hidden');
+    });
+    $addSupplierModal.on('click', function(e) {
+        if (e.target.id === 'purchaseAddSupplierModal') $addSupplierModal.addClass('hidden');
+    });
+
+    $addSupplierForm.on('submit', function(e) {
+        e.preventDefault();
+        var name = $('#purchase_supplier_name').val().trim();
+        if (!name) {
+            show_notification('error', '{{ trans("messages.enter_supplier_name", [], session("locale")) }}');
+            return;
+        }
+        var $btn = $addSupplierForm.find('button[type="submit"]');
+        $btn.prop('disabled', true);
+        $.ajax({
+            url: "{{ url('suppliers') }}",
+            type: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                supplier_name: name,
+                phone: $('#purchase_supplier_phone').val().trim(),
+                notes: $('#purchase_supplier_notes').val().trim()
+            },
+            success: function(res) {
+                var newSupplier = { id: res.id, supplier_name: res.supplier_name || name, phone: res.phone || '' };
+                suppliers.push(newSupplier);
+                $supplierId.val(newSupplier.id);
+                $supplierSearch.val(newSupplier.supplier_name + (newSupplier.phone ? ' - ' + newSupplier.phone : ''));
+                $addSupplierModal.addClass('hidden');
+                show_notification('success', '{{ trans("messages.added_success", [], session("locale")) }}');
+                $btn.prop('disabled', false);
+            },
+            error: function(xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : '{{ __("Something went wrong") }}';
+                if (xhr.responseJSON && xhr.responseJSON.errors) msg = Object.values(xhr.responseJSON.errors).flat().join(' ');
+                show_notification('error', msg);
+                $btn.prop('disabled', false);
+            }
+        });
+    });
+
     // ---------- Material row: searchable input (like supplier) ----------
     function renderMaterialDropdown($wrap, filter) {
         var list = materials;

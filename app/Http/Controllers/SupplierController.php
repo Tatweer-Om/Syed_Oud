@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Supplier;
+use App\Models\History;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -48,12 +49,23 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
         $user = Auth::user();
+        $previousData = $supplier->toArray();
 
         $supplier->supplier_name = $request->supplier_name;
         $supplier->phone = $request->phone;
         $supplier->notes = $request->notes;
         $supplier->updated_by = $user->user_name ?? 'system_update';
         $supplier->save();
+
+        History::create([
+            'operation' => 'update',
+            'source' => 'supplier',
+            'previous_data' => $previousData,
+            'new_data' => $supplier->fresh()->toArray(),
+            'added_by' => $user->user_name ?? 'system',
+            'user_id' => $user->id ?? null,
+            'added_at' => now(),
+        ]);
 
         return response()->json($supplier);
     }
@@ -65,6 +77,19 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
+        $user = Auth::user();
+        $previousData = $supplier->toArray();
+
+        History::create([
+            'operation' => 'delete',
+            'source' => 'supplier',
+            'previous_data' => $previousData,
+            'new_data' => null,
+            'added_by' => $user->user_name ?? 'system',
+            'user_id' => $user->id ?? null,
+            'added_at' => now(),
+        ]);
+
         $supplier->delete();
         return response()->json(['message' => 'Deleted']);
     }

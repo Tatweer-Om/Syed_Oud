@@ -174,13 +174,13 @@ class PurchaseController extends Controller
         $dataAfter = $draft->fresh()->toArray();
         $dataAfter['supplier_name'] = $draft->supplier->supplier_name ?? null;
         History::create([
-            'purchase_id' => null,
-            'source' => 'purchase_draft',
-            'status' => 'updated',
-            'data_before_update' => $dataBefore,
-            'data_after_update' => $dataAfter,
+            'operation' => 'update',
+            'source' => 'purchase',
+            'previous_data' => $dataBefore,
+            'new_data' => $dataAfter,
+            'added_by' => $user->user_name ?? $user->name ?? 'system',
             'user_id' => $user->id ?? null,
-            'changed_by' => $user->user_name ?? $user->name ?? 'system',
+            'added_at' => now(),
         ]);
         return response()->json([
             'status' => 'success',
@@ -216,13 +216,7 @@ class PurchaseController extends Controller
                 'user_id' => $user->id ?? null,
                 'added_by' => $user->user_name ?? $user->name ?? 'system',
             ]);
-            PurchasePayment::create([
-                'purchase_id' => $purchase->id,
-                'account_id' => null,
-                'amount' => $draft->total_amount,
-                'user_id' => $user->id ?? null,
-                'added_by' => $user->user_name ?? $user->name ?? 'system',
-            ]);
+            // Purchase payments are added only via Record Payment popup on profile page
             // Update material quantity and average buy_price for each line
             $totalQty = (float) $draft->total_quantity;
             $shippingPerUnit = $totalQty > 0 ? (float) $draft->shipping_cost / $totalQty : 0;
@@ -283,19 +277,53 @@ class PurchaseController extends Controller
         $deletedData = $draft->toArray();
         $deletedData['supplier_name'] = $draft->supplier->supplier_name ?? null;
         History::create([
-            'purchase_id' => null,
-            'source' => 'purchase_draft',
-            'status' => 'deleted',
-            'data_before_update' => $deletedData,
-            'data_after_update' => null,
+            'operation' => 'delete',
+            'source' => 'purchase',
+            'previous_data' => $deletedData,
+            'new_data' => null,
+            'added_by' => $user->user_name ?? $user->name ?? 'system',
             'user_id' => $user->id ?? null,
-            'changed_by' => $user->user_name ?? $user->name ?? 'system',
+            'added_at' => now(),
         ]);
         $draft->delete();
         return response()->json([
             'status' => 'success',
             'message' => trans('messages.purchase_draft_deleted', [], session('locale', 'en')),
         ]);
+    }
+
+    /** Store purchase payment from profile page */
+    public function storePurchasePayment(Request $request, $id)
+    {
+        $purchase = Purchase::findOrFail($id);
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01',
+            'payment_date' => 'required|date',
+            'payment_method' => 'required|in:visa,cash,bank',
+        ]);
+        $user = Auth::user();
+        PurchasePayment::create([
+            'purchase_id' => $purchase->id,
+            'amount' => (float) $request->amount,
+            'payment_method' => $request->payment_method,
+            'payment_date' => $request->payment_date,
+            'user_id' => $user->id ?? null,
+            'added_by' => $user->user_name ?? $user->name ?? 'system',
+        ]);
+        return response()->json([
+            'status' => 'success',
+            'message' => trans('messages.payment_recorded_successfully', [], session('locale', 'en')),
+        ]);
+    }
+
+    /** Purchase profile page (completed purchases only) */
+    public function purchaseProfile($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login_page')->with('error', 'Please login first');
+        }
+        $purchase = Purchase::with(['supplier', 'details', 'payments'])->findOrFail($id);
+        return view('stock.purchase_profile', ['purchase' => $purchase]);
     }
 
     /** Edit draft page (same form as purchase, pre-filled) */

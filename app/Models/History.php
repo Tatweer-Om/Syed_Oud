@@ -3,19 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class History extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'histories';
 
     protected $fillable = [
-        'purchase_id', 'source', 'status',
-        'data_before_update', 'data_after_update',
-        'user_id', 'changed_by',
+        'operation', 'source', 'added_by', 'user_id',
+        'previous_data', 'new_data', 'added_at',
     ];
 
     protected $casts = [
-        'data_before_update' => 'array',
-        'data_after_update' => 'array',
+        'previous_data' => 'array',
+        'new_data' => 'array',
     ];
 }

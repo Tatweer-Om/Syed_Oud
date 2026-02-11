@@ -155,6 +155,8 @@ Route::get('view_purchase', [PurchaseController::class, 'view_purchase'])->name(
 Route::post('purchase/draft', [PurchaseController::class, 'storeDraft'])->name('purchase.draft.store');
 Route::get('purchase/drafts', [PurchaseController::class, 'getPurchaseDrafts']);
 Route::get('purchase/draft/{id}', [PurchaseController::class, 'getDraft'])->where('id', '[0-9]+');
+Route::get('purchase/{id}/profile', [PurchaseController::class, 'purchaseProfile'])->name('purchase.profile')->where('id', '[0-9]+');
+Route::post('purchase/{id}/payment', [PurchaseController::class, 'storePurchasePayment'])->name('purchase.payment.store')->where('id', '[0-9]+');
 Route::get('purchase/{id}', [PurchaseController::class, 'getPurchase'])->where('id', '[0-9]+'); // completed purchase (view materials)
 Route::put('purchase/draft/{id}', [PurchaseController::class, 'updateDraft'])->where('id', '[0-9]+');
 Route::post('purchase/draft/{id}/complete', [PurchaseController::class, 'completeDraft'])->name('purchase.draft.complete')->where('id', '[0-9]+');
