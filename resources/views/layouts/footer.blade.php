@@ -88,6 +88,11 @@
          @include('custom_js.movement_log_js')
           @elseif ($routeName == 'tailor_material_audit')
          @include('custom_js.material_audit_js')
+{{-- umair's --}}
+         @elseif ($route_name == 'asset')
+         @include('custom_js.asset_js')
+         @elseif ($route_name == 'assetsmaintenance')
+         @include('custom_js.asset_maintenance_js')
     @endif
          
   </body>
