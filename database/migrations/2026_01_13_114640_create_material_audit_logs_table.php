@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('material_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('stock_id');
-            $table->string('abaya_code')->nullable();
+            $table->string('stock_code')->nullable();
             $table->string('barcode')->nullable();
             $table->string('design_name')->nullable();
             $table->enum('operation_type', ['stock_added', 'quantity_added', 'special_order_received'])->default('stock_added');

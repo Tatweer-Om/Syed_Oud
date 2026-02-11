@@ -72,7 +72,7 @@
                     <div class="space-y-2">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-gray-400 text-sm">qr_code</span>
-                            <span class="text-[var(--text-primary)] font-semibold">${item.abaya_code || '-'}</span>
+                            <span class="text-[var(--text-primary)] font-semibold">${item.stock_code || '-'}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-gray-400 text-sm">style</span>

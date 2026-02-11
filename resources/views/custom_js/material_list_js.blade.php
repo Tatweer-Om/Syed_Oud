@@ -18,15 +18,14 @@ $(document).ready(function() {
     let currentMaterialId = '';
     let currentSearch = '';
 
-    // ------------------ Calculate Total Meters/Pieces ------------------
-    function calculateTotalMeters(material) {
-        const rolls = parseFloat(material.rolls_count) || 0;
-        const metersPerRoll = parseFloat(material.meters_per_roll) || 0;
-        const total = rolls * metersPerRoll;
-        if (total > 0) {
-            return total.toFixed(2);
-        }
-        return '0.00';
+    // ------------------ Format quantity / unit_price for display ------------------
+    function displayQuantity(material) {
+        const q = parseFloat(material.quantity ?? material.meters_per_roll ?? 0);
+        return (q > 0 || q === 0) ? Number(q).toFixed(2) : '-';
+    }
+    function displayUnitPrice(material) {
+        const p = parseFloat(material.unit_price ?? material.buy_price ?? 0);
+        return (p > 0 || p === 0) ? Number(p).toFixed(2) : '-';
     }
 
     // ------------------ Render Table & Mobile Cards ------------------
@@ -35,41 +34,26 @@ $(document).ready(function() {
         let mobileCards = '';
 
         $.each(materials, function(_, material) {
-            let image = material.material_image ? `/images/materials/${material.material_image}` : '';
+            let notes = (material.description || '').toString().trim();
+            let notesShort = notes.length > 50 ? notes.substring(0, 50) + '...' : (notes || '-');
+            let qty = displayQuantity(material);
+            let unitPrice = displayUnitPrice(material);
+            let materialType = (material.material_type || 'production').toString();
 
             tableRows += `
                 <tr class="border-t hover:bg-pink-50/60 transition" data-id="${material.id}">
+                    <td class="px-3 py-3 text-center font-bold">${(material.material_name || '').replace(/</g, '&lt;')}</td>
+                    <td class="px-3 py-3 text-center">${(material.unit ?? '-').toString().replace(/</g, '&lt;')}</td>
+                    <td class="px-3 py-3 text-center">${qty}</td>
+                    <td class="px-3 py-3 text-center">${unitPrice}</td>
+                    <td class="px-3 py-3 text-center text-gray-600 max-w-[200px] truncate" title="${(material.description || '').replace(/"/g, '&quot;')}">${notesShort.replace(/</g, '&lt;')}</td>
                     <td class="px-3 py-3 text-center">
-                        <div class="flex items-center justify-center gap-3">
-                            <img src="${image}" class="w-12 h-16 object-cover rounded-md" />
-                            <span class="font-bold">${material.material_name}</span>
-                        </div>
-                    </td>
-                    <td class="px-3 py-3 text-center">
-                        <div class="flex flex-col items-center">
-                            <span>${trans.unit}: ${material.unit ?? '-'}</span>
-                            <span>${trans.category}: ${material.category ?? '-'}</span>
-                        </div>
-                    </td>
-                    <td class="px-3 py-3 text-center font-bold">${calculateTotalMeters(material)}</td>
-                    <td class="px-3 py-3 text-center">${material.buy_price ?? '-'}</td>
-                    <td class="px-3 py-3 text-center">
-                        <div class="flex justify-center gap-5 text-[12px] font-semibold text-gray-700">
-                            <button class="flex flex-col items-center gap-1 hover:text-green-600 transition add-quantity-btn"
-                                data-material-id="${material.id}"
-                                data-material-name="${material.material_name}"
-                                data-rolls-count="${material.rolls_count ?? 0}"
-                                data-meters-per-roll="${material.meters_per_roll ?? 0}"
-                                data-unit="${material.unit ?? 'meters'}">
-                                <span class="material-symbols-outlined bg-green-50 text-green-500 p-2 rounded-full text-base">add_circle</span>
-                                {{ trans('messages.add_quantity', [], session('locale')) ?: 'Add Quantity' }}
-                            </button>
-                            <button class="flex flex-col items-center gap-1 hover:text-blue-600 transition"
-                                onclick="window.location.href='/edit_material/${material.id}'">
+                        <div class="flex justify-center gap-3 text-[12px] font-semibold text-gray-700">
+                            <button class="edit-material-btn flex flex-col items-center gap-1 hover:text-blue-600 transition" data-id="${material.id}">
                                 <span class="material-symbols-outlined bg-blue-50 text-blue-500 p-2 rounded-full text-base">edit</span>
                                 ${trans.edit}
                             </button>
-                            <button class="flex flex-col items-center gap-1 hover:text-red-600 transition delete-material-btn">
+                            <button class="delete-material-btn flex flex-col items-center gap-1 hover:text-red-600 transition">
                                 <span class="material-symbols-outlined bg-red-50 text-red-500 p-2 rounded-full text-base">delete</span>
                                 ${trans.delete}
                             </button>
@@ -78,34 +62,19 @@ $(document).ready(function() {
                 </tr>
             `;
 
-            // Mobile cards
-            let size = material.sizes?.[0]?.size?.size_name_ar ?? '-';
-            let color = material.colors?.[0]?.color?.color_name_ar ?? '-';
-            let quantity = material.sizes?.[0]?.qty ?? 0;
-
             mobileCards += `
                 <div class="bg-white border border-pink-100 rounded-2xl shadow-sm hover:shadow-md transition p-4 mb-4 md:hidden" data-id="${material.id}">
-                    <h3 class="font-bold text-gray-900 truncate">${material.material_name}</h3>
-                    <p>${trans.unit}: ${material.unit ?? '-'}</p>
-                    <p>${trans.category}: ${material.category ?? '-'}</p>
-                    <p>${trans.size}: ${size}</p>
-                    <p>${trans.color}: ${color}</p>
-                    <p>${trans.quantity}: ${quantity}</p>
+                    <p class="font-bold text-gray-900">${(material.material_name || '').replace(/</g, '&lt;')}</p>
+                    <p><span class="text-gray-500">${trans.unit}:</span> ${(material.unit ?? '-').toString().replace(/</g, '&lt;')}</p>
+                    <p><span class="text-gray-500">${trans.quantity}:</span> ${qty}</p>
+                    <p><span class="text-gray-500">{{ trans('messages.buy_price', [], session('locale')) }} / {{ trans('messages.unit_price', [], session('locale')) ?: 'Unit price' }}:</span> ${unitPrice}</p>
+                    <p class="text-gray-600 text-sm">${notesShort.replace(/</g, '&lt;')}</p>
                     <div class="flex justify-around mt-3 text-xs font-semibold">
-                        <button class="flex flex-col items-center gap-1 hover:text-green-600 transition add-quantity-btn"
-                            data-material-id="${material.id}"
-                            data-material-name="${material.material_name}"
-                            data-rolls-count="${material.rolls_count ?? 0}"
-                            data-meters-per-roll="${material.meters_per_roll ?? 0}"
-                            data-unit="${material.unit ?? 'meters'}">
-                            <span class="material-symbols-outlined bg-green-50 text-green-500 p-2 rounded-full text-base">add_circle</span>
-                            {{ trans('messages.add_quantity', [], session('locale')) ?: 'Add Quantity' }}
-                        </button>
-                        <button class="flex flex-col items-center gap-1 hover:text-blue-600 transition" onclick="window.location.href='/edit_material/${material.id}'">
+                        <button class="edit-material-btn flex flex-col items-center gap-1 hover:text-blue-600 transition" data-id="${material.id}">
                             <span class="material-symbols-outlined bg-blue-50 text-blue-500 p-2 rounded-full text-base">edit</span>
                             ${trans.edit}
                         </button>
-                        <button class="flex flex-col items-center gap-1 hover:text-red-600 transition delete-material-btn">
+                        <button class="delete-material-btn flex flex-col items-center gap-1 hover:text-red-600 transition">
                             <span class="material-symbols-outlined bg-red-50 text-red-500 p-2 rounded-full text-base">delete</span>
                             ${trans.delete}
                         </button>
@@ -185,104 +154,99 @@ $(document).ready(function() {
         applySearch(currentSearch);
     });
 
-    // ------------------ Add Quantity Modal ------------------
-    $(document).on('click', '.add-quantity-btn', function() {
-        const materialId = $(this).data('material-id');
-        const materialName = $(this).data('material-name');
-        const rollsCount = parseFloat($(this).data('rolls-count')) || 0;
-        const metersPerRoll = parseFloat($(this).data('meters-per-roll')) || 0;
-        const unit = $(this).data('unit') || 'meters';
-
-        // Calculate total meters/pieces
-        const totalMeters = (rollsCount > 0 && metersPerRoll > 0) ? (rollsCount * metersPerRoll).toFixed(2) : parseFloat(metersPerRoll).toFixed(2) || '0';
-
-        // Populate modal with current values
-        $('#modalMaterialName').text(materialName);
-        $('#currentTotalMeters').text(totalMeters + ' ' + unit);
-        
-        // Set material ID
-        $('#materialId').val(materialId);
-        
-        // Clear and focus input
-        $('#newMetersPieces').val('').focus();
-        
-        // Show modal
-        $('#addQuantityModal').removeClass('hidden');
+    // ------------------ Edit Material Modal ------------------
+    $(document).on('click', '.edit-material-btn', function() {
+        const id = $(this).data('id');
+        // Load units first, then fetch material and set form so unit select has options before we set value
+        loadUnitsForMaterialSelect(function() {
+            $.get('{{ url("materials") }}/' + id, function(res) {
+                if (res.status !== 'success' || !res.material) {
+                    show_notification('error', '{{ trans("messages.fetch_error", [], session("locale")) }}');
+                    return;
+                }
+                const m = res.material;
+                const qty = parseFloat(m.quantity ?? m.meters_per_roll ?? 0);
+                const unitPrice = m.unit_price ?? m.buy_price ?? '';
+                const unitVal = (m.unit || '').toString().trim();
+                $('#edit_material_id').val(m.id);
+                $('#edit_popup_material_name').val(m.material_name || '');
+                $('input[name="edit_material_type"][value="' + (m.material_type || 'production') + '"]').prop('checked', true);
+                var $unitSelect = $('#edit_popup_material_unit');
+                if (unitVal) {
+                    var hasOption = $unitSelect.find('option').filter(function() { return $(this).val() === unitVal; }).length > 0;
+                    if (!hasOption) {
+                        $unitSelect.append($('<option></option>').attr('value', unitVal).text(unitVal));
+                    }
+                    $unitSelect.val(unitVal);
+                } else {
+                    $unitSelect.val('');
+                }
+                $('#edit_popup_material_quantity').val(qty);
+                $('#edit_popup_purchase_price').val(unitPrice);
+                $('#edit_popup_material_notes').val(m.description || '');
+                $('#editMaterialModal').removeClass('hidden');
+            }).fail(function() {
+                show_notification('error', '{{ trans("messages.fetch_error", [], session("locale")) }}');
+            });
+        });
     });
 
-    // Close modal
-    $(document).on('click', '#cancelAddQuantityBtn', function() {
-        $('#addQuantityModal').addClass('hidden');
-        $('#addQuantityForm')[0].reset();
+    $('#closeEditMaterialModal, #cancelEditMaterialBtn').on('click', function() {
+        $('#editMaterialModal').addClass('hidden');
     });
 
-    // Close modal on backdrop click
-    $(document).on('click', '#addQuantityModal', function(e) {
-        if ($(e.target).attr('id') === 'addQuantityModal') {
-            $('#addQuantityModal').addClass('hidden');
-            $('#addQuantityForm')[0].reset();
+    $(document).on('click', '#editMaterialModal', function(e) {
+        if ($(e.target).attr('id') === 'editMaterialModal') {
+            $('#editMaterialModal').addClass('hidden');
         }
     });
 
-    // Handle form submission
-    $('#addQuantityForm').on('submit', function(e) {
+    $('#editMaterialModalForm').on('submit', function(e) {
         e.preventDefault();
-
-        const materialId = $('#materialId').val();
-        const newMetersPieces = parseFloat($('#newMetersPieces').val()) || 0;
-
-        if (newMetersPieces <= 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: '{{ trans('messages.error', [], session('locale')) }}',
-                text: '@if(session('locale') == 'ar') يرجى إدخال عدد صحيح من الأمتار/القطع @else Please enter a valid number of meters/pieces @endif'
-            });
+        const material_name = $('#edit_popup_material_name').val().trim();
+        const material_unit = $('#edit_popup_material_unit').val();
+        if (!material_name) {
+            show_notification('error', '<?= addslashes(trans("messages.enter_material_name", [], session("locale"))) ?>');
             return;
         }
-
+        if (!material_unit) {
+            show_notification('error', '<?= addslashes(trans("messages.enter_material_unit", [], session("locale"))) ?>');
+            return;
+        }
+        const $form = $(this);
+        const $btn = $form.find('button[type="submit"]');
+        const origText = $btn.html();
+        $btn.prop('disabled', true).html('...');
         $.ajax({
-            url: '{{ url('materials/add-quantity') }}',
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
+            url: "{{ route('update_material') }}",
+            type: "POST",
             data: {
-                material_id: materialId,
-                new_meters_pieces: newMetersPieces,
-                new_buy_price: null
+                _token: '{{ csrf_token() }}',
+                material_id: $('#edit_material_id').val(),
+                material_name: material_name,
+                material_type: $('input[name="edit_material_type"]:checked').val() || 'production',
+                material_unit: material_unit,
+                quantity: parseFloat($('#edit_popup_material_quantity').val()) || 0,
+                purchase_price: $('#edit_popup_purchase_price').val() || 0,
+                material_notes: $('#edit_popup_material_notes').val() || ''
             },
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
             success: function(response) {
                 if (response.status === 'success') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '{{ trans('messages.success', [], session('locale')) }}',
-                        text: response.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    $('#addQuantityModal').addClass('hidden');
-                    $('#addQuantityForm')[0].reset();
-                    // Reload materials
+                    show_notification('success', response.message);
+                    $('#editMaterialModal').addClass('hidden');
                     loadmaterial(currentPage, currentMaterialId, currentSearch);
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: '{{ trans('messages.error', [], session('locale')) }}',
-                        text: response.message || '{{ trans('messages.error_adding_quantity', [], session('locale')) ?: 'Error adding quantity' }}'
-                    });
                 }
+                $btn.prop('disabled', false).html(origText);
             },
             error: function(xhr) {
-                let errorMsg = '{{ trans('messages.error_adding_quantity', [], session('locale')) ?: 'Error adding quantity' }}';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMsg = xhr.responseJSON.message;
+                $btn.prop('disabled', false).html(origText);
+                if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    const msg = Object.values(xhr.responseJSON.errors).flat().join(' ');
+                    show_notification('error', msg);
+                } else {
+                    show_notification('error', '{{ __("messages.error") ?: "Something went wrong" }}');
                 }
-                Swal.fire({
-                    icon: 'error',
-                    title: '{{ trans('messages.error', [], session('locale')) }}',
-                    text: errorMsg
-                });
             }
         });
     });
@@ -327,8 +291,27 @@ $(document).ready(function() {
         });
     });
 
+    // ------------------ Load units for material popup select ------------------
+    // callback: optional function to run after units are loaded (e.g. to set edit form unit value)
+    function loadUnitsForMaterialSelect(callback) {
+        $.get("{{ url('units/all') }}", function(units) {
+            function fillSelect($sel) {
+                var firstOption = $sel.find('option:first').clone();
+                $sel.empty().append(firstOption);
+                $.each(units, function(i, u) {
+                    $sel.append($('<option></option>').attr('value', u.unit_name).text(u.unit_name));
+                });
+            }
+            fillSelect($('#popup_material_unit'));
+            fillSelect($('#edit_popup_material_unit'));
+            if (typeof callback === 'function') callback();
+        });
+    }
+    loadUnitsForMaterialSelect();
+
     // ------------------ Add Material Modal (popup) ------------------
     $('#openAddMaterialModal').on('click', function() {
+        loadUnitsForMaterialSelect();
         $('#addMaterialModal').removeClass('hidden');
         $('#addMaterialModalForm')[0].reset();
         $('#popup_material_name').focus();
@@ -368,7 +351,9 @@ $(document).ready(function() {
             data: {
                 _token: '{{ csrf_token() }}',
                 material_name: material_name,
+                material_type: $('input[name="material_type"]:checked').val() || 'production',
                 material_unit: material_unit,
+                quantity: parseFloat($('#popup_material_quantity').val()) || 0,
                 purchase_price: $('#popup_purchase_price').val() || 0,
                 material_notes: $('#popup_material_notes').val() || ''
             },

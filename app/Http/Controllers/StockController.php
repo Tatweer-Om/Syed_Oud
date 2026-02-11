@@ -2,31 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Size;
-use App\Models\Color;
 use App\Models\Stock;
-use App\Models\Tailor;
 use App\Models\Category;
-use App\Models\ColorSize;
-use App\Models\StockSize;
-use App\Models\StockColor;
-use App\Models\StockImage;
-use App\Models\Material;
-use App\Models\AbayaMaterial;
-use App\Models\TailorMaterial;
-use App\Models\SpecialOrderItem;
-use App\Models\SpecialOrder;
-use Illuminate\Support\Str;
 use App\Models\StockHistory;
 use App\Models\StockAuditLog;
-use App\Models\MaterialAuditLog;
-use App\Models\MaterialQuantityAudit;
-use App\Models\TailorPaymentItem;
-use App\Models\Customer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class StockController extends Controller
 {
@@ -42,82 +25,23 @@ class StockController extends Controller
             return redirect()->route('login_page')->with('error', 'Permission denied');
         }
 
-        $tailors = Tailor::all();
-        $colors = Color::all();
-        $sizes = Size::all();
-        $categories = Category::all();
-        $materials = Material::all();
 
-        return view('stock.add_stock', compact('tailors', 'colors', 'sizes', 'categories', 'materials'));
+        $categories = Category::all();
+
+        return view('stock.add_stock', compact('categories'));
     }
 
 public function edit_stock($id)
 {
-    $tailors = Tailor::all();
-    $colors  = Color::all();
-    $sizes   = Size::all();
     $categories = Category::all();
-    $materials = Material::all();
-
-    $stock = Stock::with([
-        'colors',    
-        'sizes',        
-        'colorSizes',  
-        'images',
-        'category',
-        'abayaMaterials'
-    ])->findOrFail($id);
-
-    $selectedTailors = json_decode($stock->tailor_id, true) ?? [];
-    // Get the first tailor ID if array, or the value itself if it's a single ID
-    $selectedTailorId = is_array($selectedTailors) && !empty($selectedTailors) ? $selectedTailors[0] : (is_numeric($selectedTailors) ? $selectedTailors : null);
-
-    // Get existing abaya materials for this stock
-    $abayaMaterial = AbayaMaterial::where('abaya_id', $stock->id)->first();
-    $existingMaterials = [];
-    if ($abayaMaterial && $abayaMaterial->materials) {
-        foreach ($abayaMaterial->materials as $materialData) {
-            $material = Material::find($materialData['material_id'] ?? null);
-            if ($material) {
-                $existingMaterials[] = [
-                    'id' => $material->id,
-                    'material_id' => $materialData['material_id'],
-                    'material_name' => $material->material_name,
-                    'material_image' => $material->material_image,
-                    'quantity' => $materialData['quantity'] ?? 0,
-                    'unit' => $materialData['unit'] ?? $material->unit ?? 'meters',
-                ];
-            }
-        }
-    }
-
+    $stock = Stock::with('category')->findOrFail($id);
     $returnPage = (int) request()->get('page', 1);
     if ($returnPage < 1) {
         $returnPage = 1;
     }
 
-    return view('stock.edit_stock', compact('tailors', 'colors', 'sizes', 'categories', 'materials', 'id', 'stock', 'selectedTailors', 'selectedTailorId', 'existingMaterials', 'returnPage'));
+    return view('stock.edit_stock', compact('categories', 'id', 'stock', 'returnPage'));
 }
-
-
-    public function deleteImage($id)
-{
-    $image = StockImage::findOrFail($id);
-
-    // Delete file from server
-    if (file_exists(public_path($image->image_path))) {
-        unlink(public_path($image->image_path));
-    }
-
-    // Delete DB record
-    $image->delete();
-
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Image deleted successfully!'
-    ]);
-}
-
 
 
 
@@ -139,31 +63,9 @@ public function edit_stock($id)
 
 public function getstock()
 {
-    // Eager load relationships
-   $stocks = Stock::with([
-    'colorSizes.size',
-    'colorSizes.color',
-    'images',
-    'category'
-])
-->orderBy('id', 'DESC')
-->paginate(10);
-
-    // Add tailor names to each stock
-    foreach ($stocks->items() as $stock) {
-        $tailorNames = [];
-        if ($stock->tailor_id) {
-            $tailorIds = json_decode($stock->tailor_id, true);
-            if (is_array($tailorIds)) {
-                $tailors = Tailor::whereIn('id', $tailorIds)->get();
-                foreach ($tailors as $tailor) {
-                    $tailorNames[] = $tailor->tailor_name;
-                }
-            }
-        }
-        $stock->tailor_names = $tailorNames;
-        $stock->tailor_names_display = !empty($tailorNames) ? implode(', ', $tailorNames) : '-';
-    }
+    $stocks = Stock::with('category')
+        ->orderBy('id', 'DESC')
+        ->paginate(10);
 
     return response()->json($stocks);
 }
@@ -174,274 +76,37 @@ public function getstock()
 
 public function add_stock(Request $request)
 {
-    // Validate category is selected
-    if (!$request->category_id) {
-        return response()->json([
-            'status' => 'error',
-            'message' => trans('messages.enter_category', [], session('locale')) ?: 'Please select a category'
-        ], 422);
-    }
-
-    // Validate at least one color and size combination is selected
-    $hasColorSize = false;
-    if ($request->filled('color_sizes') && is_array($request->color_sizes)) {
-        foreach ($request->color_sizes as $color_id => $sizes) {
-            if (!empty($sizes) && is_array($sizes)) {
-                foreach ($sizes as $size_id => $data) {
-                    if (!empty($color_id) && !empty($size_id) && isset($data['qty']) && floatval($data['qty']) > 0) {
-                        $hasColorSize = true;
-                        break 2;
-                    }
-                }
-            }
-        }
-    }
-    
-    if (!$hasColorSize) {
-        return response()->json([
-            'status' => 'error',
-            'message' => trans('messages.enter_color_size', [], session('locale')) ?: 'Please add at least one color and size combination'
-        ], 422);
-    }
-
-    // Validate at least one material is assigned
-    $hasMaterial = false;
-    if ($request->filled('abaya_materials') && is_array($request->abaya_materials)) {
-        foreach ($request->abaya_materials as $material) {
-            if (!empty($material['material_id']) && isset($material['quantity']) && floatval($material['quantity']) > 0) {
-                $hasMaterial = true;
-                break;
-            }
-        }
-    }
-    
-    if (!$hasMaterial) {
-        return response()->json([
-            'status' => 'error',
-            'message' => trans('messages.at_least_one_material_required', [], session('locale')) ?: 'At least one material must be assigned'
-        ], 422);
-    }
-
-    $totalQty = 0;
-if (!empty($request->color_sizes)) {
-    foreach ($request->color_sizes as $color_id => $sizes) {
-        foreach ($sizes as $size_id => $data) {
-            $totalQty += $data['qty'] ?? 0;
-        }
-    }
-}
-
-    $tailor_id = $request->input('tailor_id');
-    // Store as array for backward compatibility with database structure
-    $tailor_ids = $tailor_id ? [$tailor_id] : [];
     $stock = new Stock();
-    $stock->abaya_code         = $request->abaya_code;
-    $stock->design_name        = $request->design_name;
-    $stock->barcode            = $request->barcode;
-    $stock->abaya_notes        = $request->abaya_notes;
-    $stock->category_id        = $request->category_id;
-    $stock->cost_price         = $request->cost_price;
-    $stock->sales_price        = $request->sales_price;
-    $stock->tailor_charges     = $request->tailor_charges;
-    $stock->tailor_id          = json_encode($tailor_ids);
-    $stock->quantity           = $totalQty;
-    $stock->notification_limit = $request->notification_limit;
-    $stock->mode               = $request->mode;
-    $stock->save();
+    $stock->stock_name        = $request->stock_name;
+    $stock->category_id       = $request->category_id;
+    $stock->barcode           = $request->barcode;
+    $stock->stock_notes       = $request->stock_notes;
 
-    // Get authenticated user info for history tracking
-    $user_id = \Illuminate\Support\Facades\Auth::id();
-    $user = \App\Models\User::find($user_id);
-    $user_name = $user ? $user->user_name : 'System';
-
-    // ========= 1️⃣ Save Color Only =========
-    if (!empty($request->colors)) {
-        foreach ($request->colors as $color) {
-            $qty = $color['qty'] ?? 0;
-            $stockColor = new StockColor();
-            $stockColor->stock_id = $stock->id;
-            $stockColor->color_id = $color['color_id'];
-            $stockColor->qty      = $qty;
-            $stockColor->save();
-
-            // Create StockHistory record for initial addition
-            if ($qty > 0) {
-                // Get tailor_id from request (single tailor for initial stock addition)
-                $tailor_id_for_history = $tailor_id ? (int)$tailor_id : null;
-                
-                StockHistory::create([
-                    'stock_id'    => $stock->id,
-                    'size_id'     => null,
-                    'color_id'    => $color['color_id'],
-                    'old_qty'     => 0,
-                    'changed_qty' => $qty,
-                    'new_qty'     => $qty,
-                    'action_type' => 1, // 1 = addition
-                    'tailor_id'   => $tailor_id_for_history,
-                    'pull_notes'  => null,
-                    'user_id'     => $user_id ? (string)$user_id : null,
-                    'added_by'    => $user_name,
-                ]);
-
-                // Log audit entry
-                $this->logStockAudit($stock, 'added', 0, $qty, null, null, null, $color['color_id'], null, 'Initial stock addition - Color only');
-            }
-        }
-    }
-
-    // ========= 2️⃣ Save Size Only =========
-    if (!empty($request->sizes)) {
-        foreach ($request->sizes as $size_id => $size) {
-            $qty = $size['qty'] ?? 0;
-            $stockSize = new StockSize();
-            $stockSize->stock_id = $stock->id;
-            $stockSize->size_id  = $size_id;
-            $stockSize->qty      = $qty;
-            $stockSize->save();
-
-            // Create StockHistory record for initial addition
-            if ($qty > 0) {
-                // Get tailor_id from request (single tailor for initial stock addition)
-                $tailor_id_for_history = $tailor_id ? (int)$tailor_id : null;
-                
-                StockHistory::create([
-                    'stock_id'    => $stock->id,
-                    'size_id'     => $size_id,
-                    'color_id'    => null,
-                    'old_qty'     => 0,
-                    'changed_qty' => $qty,
-                    'new_qty'     => $qty,
-                    'action_type' => 1, // 1 = addition
-                    'tailor_id'   => $tailor_id_for_history,
-                    'pull_notes'  => null,
-                    'user_id'     => $user_id ? (string)$user_id : null,
-                    'added_by'    => $user_name,
-                ]);
-
-                // Log audit entry
-                $this->logStockAudit($stock, 'added', 0, $qty, null, null, null, null, $size_id, 'Initial stock addition - Size only');
-            }
-        }
-    }
-
-    // ========= 3️⃣ Save Color + Size =========
-    if (!empty($request->color_sizes)) {
-        foreach ($request->color_sizes as $color_id => $sizes) {
-            foreach ($sizes as $size_id => $data) {
-                $qty = $data['qty'] ?? 0;
-                $colorSize = new ColorSize();
-                $colorSize->stock_id = $stock->id;
-                $colorSize->color_id = $color_id;
-                $colorSize->size_id  = $data['size_id'];
-                $colorSize->qty      = $qty;
-                $colorSize->save();
-
-                // Create StockHistory record for initial addition
-                if ($qty > 0) {
-                    // Get tailor_id from request (single tailor for initial stock addition)
-                    $tailor_id_for_history = $tailor_id ? (int)$tailor_id : null;
-                    
-                    StockHistory::create([
-                        'stock_id'    => $stock->id,
-                        'size_id'     => $data['size_id'],
-                        'color_id'    => $color_id,
-                        'old_qty'     => 0,
-                        'changed_qty' => $qty,
-                        'new_qty'     => $qty,
-                        'action_type' => 1, // 1 = addition
-                        'tailor_id'   => $tailor_id_for_history,
-                        'pull_notes'  => null,
-                        'user_id'     => $user_id ? (string)$user_id : null,
-                        'added_by'    => $user_name,
-                    ]);
-
-                    // Log audit entry
-                    $this->logStockAudit($stock, 'added', 0, $qty, null, null, null, $color_id, $data['size_id'], 'Initial stock addition - Color & Size');
-                }
-            }
-        }
-    }
-
-    // ========= 4️⃣ Save Images =========
-    if ($request->hasFile('images')) {
+    if ($request->hasFile('image')) {
         $folderPath = public_path('images/stock_images');
-
         if (!File::isDirectory($folderPath)) {
             File::makeDirectory($folderPath, 0777, true, true);
         }
-
-        foreach ($request->file('images') as $image) {
-            $imageName = time() . '_' . \Illuminate\Support\Str::random(6) . '.' . $image->getClientOriginalExtension();
-            $image->move($folderPath, $imageName);
-
-            $stock_img = new StockImage();
-            $stock_img->stock_id   = $stock->id;
-            $stock_img->image_path = asset('images/stock_images/' . $imageName);
-            $stock_img->save();
-        }
+        $image = $request->file('image');
+        $imageName = time() . '_' . Str::random(6) . '.' . $image->getClientOriginalExtension();
+        $image->move($folderPath, $imageName);
+        $stock->image = 'images/stock_images/' . $imageName;
     }
 
-    // ========= 5️⃣ Save Material Assignments =========
-    if ($request->filled('abaya_materials') && is_array($request->abaya_materials)) {
-        $materialsArray = [];
-        foreach ($request->abaya_materials as $material) {
-            if (!empty($material['material_id']) && isset($material['quantity']) && $material['quantity'] > 0) {
-                $materialsArray[] = [
-                    'material_id' => (int)$material['material_id'],
-                    'quantity' => (float)$material['quantity'],
-                    'unit' => $material['unit'] ?? 'meters' // Default to meters, can be 'pieces' or 'meters'
-                ];
-            }
-        }
-        
-        if (!empty($materialsArray)) {
-            $abayaMaterial = new AbayaMaterial();
-            $abayaMaterial->abaya_id = $stock->id;
-            $abayaMaterial->abaya_barcode = $stock->barcode;
-            $abayaMaterial->materials = $materialsArray; // JSON cast handles array
-            $abayaMaterial->save();
-        }
-    }
-
-    // Deduct materials from main inventory and tailor inventory, and create audit logs
-    if ($totalQty > 0) {
-        $tailorName = null;
-        if ($tailor_id) {
-            $tailor = Tailor::find($tailor_id);
-            $tailorName = $tailor ? $tailor->tailor_name : null;
-        }
-        $this->deductMaterialsFromInventory($stock->id, $totalQty, 'stock', $tailor_id, $tailorName);
-    }
-
-    // Log material audit entry for stock addition
-    try {
-        $tailorName = null;
-        if ($tailor_id) {
-            $tailor = Tailor::find($tailor_id);
-            $tailorName = $tailor ? $tailor->tailor_name : null;
-        }
-        
-        MaterialAuditLog::create([
-            'stock_id' => $stock->id,
-            'abaya_code' => $stock->abaya_code,
-            'barcode' => $stock->barcode,
-            'design_name' => $stock->design_name,
-            'operation_type' => 'stock_added',
-            'quantity_added' => $totalQty,
-            'tailor_id' => $tailor_id,
-            'tailor_name' => $tailorName,
-            'user_id' => $user_id,
-            'added_by' => $user_name,
-            'added_at' => now(),
-            'notes' => 'Stock added from stock page',
-        ]);
-    } catch (\Exception $e) {
-        \Log::error('Error creating material audit log: ' . $e->getMessage());
-    }
+    $stock->cost_price        = $request->cost_price;
+    $stock->sales_price       = $request->sales_price;
+    $stock->discount          = $request->discount;
+    $stock->tax               = $request->tax;
+    $stock->quantity          = $request->quantity ?? 0;
+    $stock->notification_limit = $request->notification_limit;
+    $stock->added_by          = Auth::user()?->user_name ?? null;
+    $stock->updated_by        = Auth::user()?->user_name ?? null;
+    $stock->user_id           = Auth::id() ? (string) Auth::id() : null;
+    $stock->save();
 
     return response()->json([
         'status'  => 'success',
-        'message' => 'Stock added successfully!',
+        'message' => trans('messages.stock_added_successfully', [], session('locale')) ?: 'Stock added successfully!',
         'redirect_url' => url('view_stock'),
     ]);
 }
@@ -449,133 +114,51 @@ if (!empty($request->color_sizes)) {
 
 public function update_stock(Request $request)
 {
-    $stock_id = $request->stock_id;
-    $stock = Stock::findOrFail($stock_id);
-    $tailor_id = $request->input('tailor_id');
-    $tailor_ids = $tailor_id ? [$tailor_id] : [];
-    $stock->abaya_code         = $request->abaya_code;
-    $stock->design_name        = $request->design_name;
-    $stock->barcode            = $request->barcode;
-    $stock->abaya_notes        = $request->abaya_notes;
-    $stock->category_id        = $request->category_id;
-    $stock->cost_price         = $request->cost_price;
-    $stock->sales_price        = $request->sales_price;
-    $stock->website_data_delivery_status  = 1;
-    $stock->tailor_id          = json_encode($tailor_ids);
-    $totalQty = 0;
-    if (!empty($request->colors)) {
-        foreach ($request->colors as $c) {
-            $totalQty += (float)($c['qty'] ?? 0);
+    $stock = Stock::findOrFail($request->stock_id);
+    $oldData = $stock->toArray();
+
+    $stock->stock_name        = $request->stock_name;
+    $stock->category_id       = $request->category_id;
+    $stock->barcode           = $request->barcode;
+    $stock->stock_notes       = $request->stock_notes;
+
+    if ($request->hasFile('image')) {
+        if ($stock->image && File::exists(public_path($stock->image))) {
+            File::delete(public_path($stock->image));
         }
-    }
-    if (!empty($request->sizes)) {
-        foreach ($request->sizes as $s) {
-            $totalQty += (float)($s['qty'] ?? 0);
-        }
-    }
-    if (!empty($request->color_sizes)) {
-        foreach ($request->color_sizes as $color_id => $sizes) {
-            if (is_array($sizes)) {
-                foreach ($sizes as $size_id => $data) {
-                    $totalQty += (float)($data['qty'] ?? 0);
-                }
-            }
-        }
-    }
-    $stock->quantity = $totalQty;
-    $stock->notification_limit = $request->notification_limit;
-    $stock->mode               = $request->mode;
-    $stock->save();
-
-    StockColor::where('stock_id', $stock_id)->delete();
-    StockSize::where('stock_id', $stock_id)->delete();
-    ColorSize::where('stock_id', $stock_id)->delete();
-
-
-    if (!empty($request->colors)) {
-        foreach ($request->colors as $color) {
-
-            $stockColor = new StockColor();
-            $stockColor->stock_id = $stock->id;
-            $stockColor->color_id = $color['color_id'];
-            $stockColor->qty      = $color['qty'] ?? 0;
-            $stockColor->save();
-        }
-    }
-
-    if (!empty($request->sizes)) {
-        foreach ($request->sizes as $size_id => $size) {
-
-            $stockSize = new StockSize();
-            $stockSize->stock_id = $stock->id;
-            $stockSize->size_id  = $size_id;
-            $stockSize->qty      = $size['qty'] ?? 0;
-            $stockSize->save();
-        }
-    }
-
-    
-    if (!empty($request->color_sizes)) {
-
-        foreach ($request->color_sizes as $color_id => $sizes) {
-            foreach ($sizes as $size_id => $data) {
-
-                $colorSize = new ColorSize();
-                $colorSize->stock_id = $stock->id;
-                $colorSize->color_id = $color_id;
-                $colorSize->size_id  = $data['size_id'];  
-                $colorSize->qty      = $data['qty'] ?? 0;
-                $colorSize->save();
-            }
-        }
-    }
-
-    // ============================================
-    // 4️⃣ UPDATE IMAGES
-    // ============================================
-    if ($request->hasFile('images')) {
-
         $folderPath = public_path('images/stock_images');
-
         if (!File::isDirectory($folderPath)) {
             File::makeDirectory($folderPath, 0777, true, true);
         }
-
-        foreach ($request->file('images') as $image) {
-
-            $imageName = time() . '_' . Str::random(6) . '.' . $image->getClientOriginalExtension();
-            $image->move($folderPath, $imageName);
-
-            $stock_img = new StockImage();
-            $stock_img->stock_id   = $stock->id;
-            $stock_img->image_path = asset('images/stock_images/' . $imageName);
-            $stock_img->save();
-        }
+        $image = $request->file('image');
+        $imageName = time() . '_' . Str::random(6) . '.' . $image->getClientOriginalExtension();
+        $image->move($folderPath, $imageName);
+        $stock->image = 'images/stock_images/' . $imageName;
     }
 
-    // ============================================
-    // 5️⃣ UPDATE MATERIAL ASSIGNMENTS (abaya_materials)
-    // ============================================
-    AbayaMaterial::where('abaya_id', $stock->id)->delete();
-    if ($request->filled('abaya_materials') && is_array($request->abaya_materials)) {
-        $materialsArray = [];
-        foreach ($request->abaya_materials as $material) {
-            if (!empty($material['material_id']) && isset($material['quantity']) && (float)($material['quantity'] ?? 0) > 0) {
-                $materialsArray[] = [
-                    'material_id' => (int)$material['material_id'],
-                    'quantity'    => (float)($material['quantity'] ?? 0),
-                    'unit'        => $material['unit'] ?? 'meters',
-                ];
-            }
-        }
-        if (!empty($materialsArray)) {
-            $abayaMaterial = new AbayaMaterial();
-            $abayaMaterial->abaya_id = $stock->id;
-            $abayaMaterial->abaya_barcode = $stock->barcode ?? '';
-            $abayaMaterial->materials = $materialsArray;
-            $abayaMaterial->save();
-        }
-    }
+    $stock->cost_price        = $request->cost_price;
+    $stock->sales_price       = $request->sales_price;
+    $stock->discount          = $request->discount;
+    $stock->tax               = $request->tax;
+    $stock->quantity          = $request->quantity ?? 0;
+    $stock->notification_limit = $request->notification_limit;
+    $stock->updated_by        = Auth::user()?->user_name ?? null;
+    $stock->user_id           = Auth::id() ? (string) Auth::id() : null;
+    $stock->save();
+
+    StockAuditLog::create([
+        'stock_id' => $stock->id,
+        'stock_code' => $stock->barcode,
+        'barcode' => $stock->barcode,
+        'design_name' => $stock->stock_name,
+        'operation_type' => 'updated',
+        'previous_quantity' => (int) ($oldData['quantity'] ?? 0),
+        'new_quantity' => (int) ($stock->quantity ?? 0),
+        'quantity_change' => (int) ($stock->quantity ?? 0) - (int) ($oldData['quantity'] ?? 0),
+        'user_id' => Auth::id(),
+        'added_by' => Auth::user()?->user_name ?? null,
+        'notes' => 'Stock details updated',
+    ]);
 
     $returnPage = (int) $request->get('return_page', 1);
     $redirectUrl = url('view_stock');
@@ -585,7 +168,7 @@ public function update_stock(Request $request)
 
     return response()->json([
         'status'  => 'success',
-        'message' => 'Stock Updated successfully!',
+        'message' => trans('messages.stock_updated_successfully', [], session('locale')) ?: 'Stock updated successfully!',
         'redirect_url' => $redirectUrl,
     ]);
 }
@@ -602,22 +185,161 @@ public function delete_stock($id)
         ], 404);
     }
 
-    // Delete related data
-    StockColor::where('stock_id', $id)->delete();
-    StockSize::where('stock_id', $id)->delete();
-    ColorSize::where('stock_id', $id)->delete();
-    StockImage::where('stock_id', $id)->delete();
+    StockAuditLog::create([
+        'stock_id' => $stock->id,
+        'stock_code' => $stock->barcode,
+        'barcode' => $stock->barcode,
+        'design_name' => $stock->stock_name,
+        'operation_type' => 'updated',
+        'previous_quantity' => (int) ($stock->quantity ?? 0),
+        'new_quantity' => 0,
+        'quantity_change' => -(int) ($stock->quantity ?? 0),
+        'user_id' => Auth::id(),
+        'added_by' => Auth::user()?->user_name ?? null,
+        'notes' => 'Stock deleted',
+    ]);
 
-    // Delete stock
     $stock->delete();
 
     return response()->json([
         'status'  => 'success',
-        'message' => 'Stock deleted successfully!'
+        'message' => trans('messages.stock_deleted_successfully', [], session('locale')) ?: 'Stock deleted successfully!'
     ]);
 }
 
+/**
+ * Simplified stock detail for view modal (no colors/sizes)
+ */
+public function get_simple_stock_detail(Request $request)
+{
+    $stock = Stock::with('category')->findOrFail($request->id);
+    $imageUrl = $stock->image ? asset($stock->image) : null;
+    return response()->json([
+        'stock_id' => $stock->id,
+        'stock_name' => $stock->stock_name ?? '-',
+        'category_name' => $stock->category?->category_name ?? '-',
+        'barcode' => $stock->barcode ?? '-',
+        'stock_notes' => $stock->stock_notes ?? '-',
+        'image' => $imageUrl,
+        'cost_price' => $stock->cost_price ?? 0,
+        'sales_price' => $stock->sales_price ?? 0,
+        'discount' => $stock->discount ?? 0,
+        'tax' => $stock->tax ?? 0,
+        'quantity' => $stock->quantity ?? 0,
+        'notification_limit' => $stock->notification_limit ?? null,
+    ]);
+}
 
+/**
+ * Push (add) quantity to stock
+ */
+public function stock_push_quantity(Request $request)
+{
+    $stock = Stock::findOrFail($request->stock_id);
+    $qty = (float) ($request->quantity ?? 0);
+    if ($qty <= 0) {
+        return response()->json(['status' => 'error', 'message' => 'Quantity must be greater than 0'], 422);
+    }
+    $current = (float) ($stock->quantity ?? 0);
+    $newQty = $current + $qty;
+    $stock->quantity = (string) $newQty;
+    $stock->updated_by = Auth::user()?->user_name ?? null;
+    $stock->save();
+
+    $userName = Auth::user()?->user_name ?? null;
+    $userId = Auth::id() ? (string) Auth::id() : null;
+
+    StockHistory::create([
+        'stock_id' => $stock->id,
+        'old_qty' => (int) $current,
+        'changed_qty' => (int) $qty,
+        'new_qty' => (int) $newQty,
+        'action_type' => 1,
+        'user_id' => $userId,
+        'added_by' => $userName,
+    ]);
+
+    StockAuditLog::create([
+        'stock_id' => $stock->id,
+        'stock_code' => $stock->barcode,
+        'barcode' => $stock->barcode,
+        'design_name' => $stock->stock_name,
+        'operation_type' => 'added',
+        'previous_quantity' => (int) $current,
+        'new_quantity' => (int) $newQty,
+        'quantity_change' => (int) $qty,
+        'user_id' => Auth::id(),
+        'added_by' => $userName,
+        'notes' => 'Quantity added (push)',
+    ]);
+
+    return response()->json([
+        'status' => 'success',
+        'message' => trans('messages.quantity_added_successfully', [], session('locale')) ?: 'Quantity added successfully!',
+        'new_quantity' => (float) $stock->quantity,
+    ]);
+}
+
+/**
+ * Pull (subtract) quantity from stock - reason required
+ */
+public function stock_pull_quantity(Request $request)
+{
+    $stock = Stock::findOrFail($request->stock_id);
+    $qty = (float) ($request->quantity ?? 0);
+    $reason = trim($request->pull_reason ?? '');
+    if (empty($reason)) {
+        return response()->json(['status' => 'error', 'message' => trans('messages.please_enter_pull_notes', [], session('locale')) ?: 'Pull reason is required'], 422);
+    }
+    if ($qty <= 0) {
+        return response()->json(['status' => 'error', 'message' => 'Quantity must be greater than 0'], 422);
+    }
+    $available = (float) ($stock->quantity ?? 0);
+    if ($qty > $available) {
+        return response()->json([
+            'status' => 'error',
+            'message' => (trans('messages.pull_quantity_exceeds_available', [], session('locale')) ?: 'Pull quantity cannot exceed available quantity') . '. ' . (trans('messages.available', [], session('locale')) ?: 'Available') . ': ' . $available
+        ], 422);
+    }
+    $newQty = $available - $qty;
+    $stock->quantity = (string) $newQty;
+    $stock->updated_by = Auth::user()?->user_name ?? null;
+    $stock->save();
+
+    $userName = Auth::user()?->user_name ?? null;
+    $userId = Auth::id() ? (string) Auth::id() : null;
+
+    StockHistory::create([
+        'stock_id' => $stock->id,
+        'old_qty' => (int) $available,
+        'changed_qty' => (int) $qty,
+        'new_qty' => (int) $newQty,
+        'action_type' => 2,
+        'pull_notes' => $reason,
+        'user_id' => $userId,
+        'added_by' => $userName,
+    ]);
+
+    StockAuditLog::create([
+        'stock_id' => $stock->id,
+        'stock_code' => $stock->barcode,
+        'barcode' => $stock->barcode,
+        'design_name' => $stock->stock_name,
+        'operation_type' => 'updated',
+        'previous_quantity' => (int) $available,
+        'new_quantity' => (int) $newQty,
+        'quantity_change' => -(int) $qty,
+        'user_id' => Auth::id(),
+        'added_by' => $userName,
+        'notes' => 'Quantity pulled. Reason: ' . $reason,
+    ]);
+
+    return response()->json([
+        'status' => 'success',
+        'message' => trans('messages.quantity_pulled_successfully', [], session('locale')) ?: 'Quantity pulled successfully!',
+        'new_quantity' => (float) $stock->quantity,
+    ]);
+}
 
 public function stock_detail(Request $request)
 {
@@ -697,8 +419,8 @@ $qty = $item->qty ?? 0;
 
     $data = [
         'stock_id' => $stock->id,
-        'abaya_code' => $stock->abaya_code,
-        'abaya_notes' => $stock->abaya_notes,
+        'stock_code' => $stock->stock_code,
+        'stock_notes' => $stock->stock_notes,
         'design_name' => $stock->design_name,
         'image_path' => $stock->images->first() ? $stock->images->first()->image_path : null,
         'barcode' => $stock->barcode,
@@ -763,10 +485,10 @@ public function get_full_stock_details(Request $request)
 
     $data = [
         'stock_id' => $stock->id,
-        'abaya_code' => $stock->abaya_code ?? '-',
+        'stock_code' => $stock->stock_code ?? '-',
         'design_name' => $stock->design_name ?? '-',
         'barcode' => $stock->barcode ?? '-',
-        'abaya_notes' => $stock->abaya_notes ?? '-',
+        'stock_notes' => $stock->stock_notes ?? '-',
         'cost_price' => $stock->cost_price ?? 0,
         'sales_price' => $stock->sales_price ?? 0,
         'tailor_charges' => $stock->tailor_charges ?? 0,
@@ -1097,7 +819,7 @@ public function add_quantity(Request $request)
                         
                         MaterialAuditLog::create([
                             'stock_id' => $stock_id,
-                            'abaya_code' => $stock->abaya_code,
+                            'stock_code' => $stock->stock_code,
                             'barcode' => $stock->barcode,
                             'design_name' => $stock->design_name,
                             'operation_type' => 'quantity_added',
@@ -1225,7 +947,7 @@ public function add_quantity(Request $request)
             // Apply search filter
             if (!empty($search)) {
                 $query->where(function($q) use ($search) {
-                    $q->where('abaya_code', 'like', '%' . $search . '%')
+                    $q->where('stock_code', 'like', '%' . $search . '%')
                       ->orWhere('barcode', 'like', '%' . $search . '%')
                       ->orWhere('design_name', 'like', '%' . $search . '%');
                 });
@@ -1247,7 +969,7 @@ public function add_quantity(Request $request)
             foreach ($allLogs as $log) {
                 // Create grouping key: barcode + operation_type + related_id + datetime (rounded to minute)
                 $dateTime = \Carbon\Carbon::parse($log->created_at)->format('Y-m-d H:i');
-                $groupKey = ($log->barcode ?? $log->abaya_code ?? '') . '|' . 
+                $groupKey = ($log->barcode ?? $log->stock_code ?? '') . '|' . 
                            ($log->size_id ?? '') . '|' .
                            ($log->operation_type ?? '') . '|' . 
                            ($log->related_id ?? '') . '|' . 
@@ -1377,7 +1099,7 @@ public function add_quantity(Request $request)
 
                 return [
                     'id' => $log->id,
-                    'abaya_code' => $log->abaya_code ?? '—',
+                    'stock_code' => $log->stock_code ?? '—',
                     'barcode' => $log->barcode ?? '—',
                     'size' => $sizeName,
                     'design_name' => $log->design_name ?? '—',
@@ -1395,13 +1117,13 @@ public function add_quantity(Request $request)
                 ];
             }, $paginated);
 
-            // Calculate remaining quantity for searched abaya (total + per size)
+            // Calculate remaining quantity for searched stock (total + per size)
             $remainingQty = null;
             $remainingBySize = null;
             if (!empty($search)) {
                 // Get all logs for this barcode and calculate final quantity (by size)
                 $barcodeLogs = StockAuditLog::where(function($q) use ($search) {
-                    $q->where('abaya_code', 'like', '%' . $search . '%')
+                    $q->where('stock_code', 'like', '%' . $search . '%')
                       ->orWhere('barcode', 'like', '%' . $search . '%')
                       ->orWhere('design_name', 'like', '%' . $search . '%');
                 })->with('size')->orderBy('created_at', 'ASC')->get();
@@ -1513,7 +1235,7 @@ public function add_quantity(Request $request)
 
                     // Get transfers OUT (from main/warehouse to channels/boutiques)
                     // Transfers where item_code matches and quantity_pulled > 0
-                    $transfersOut = \App\Models\TransferItemHistory::where('item_code', $stock->abaya_code)
+                    $transfersOut = \App\Models\TransferItemHistory::where('item_code', $stock->stock_code)
                         ->where('quantity_pulled', '>', 0)
                         ->with('transfer')
                         ->get()
@@ -1529,7 +1251,7 @@ public function add_quantity(Request $request)
 
                     // Get transfers IN (from channels/boutiques to main/warehouse)
                     // Transfers where item_code matches and quantity_pushed > 0
-                    $transfersIn = \App\Models\TransferItemHistory::where('item_code', $stock->abaya_code)
+                    $transfersIn = \App\Models\TransferItemHistory::where('item_code', $stock->stock_code)
                         ->where('quantity_pushed', '>', 0)
                         ->with('transfer')
                         ->get()
@@ -1575,8 +1297,8 @@ public function add_quantity(Request $request)
                 $auditList[] = [
                     'stock_id' => $stock->id,
                     'barcode' => $stock->barcode ?? '-',
-                    'abaya_code' => $stock->abaya_code,
-                    'design_name' => $stock->design_name ?? $stock->abaya_code,
+                    'stock_code' => $stock->stock_code,
+                    'design_name' => $stock->design_name ?? $stock->stock_code,
                     'quantity_added' => (int)$totalAdded,
                     'stock_addition' => (int)$totalAdded,
                     'quantity_pulled' => (int)$totalPulled,
@@ -1625,7 +1347,7 @@ public function add_quantity(Request $request)
 
             if ($type === 'transferred') {
                 // Get all transfers OUT (to channels/boutiques) - these are the ones we want to show
-                $transfersOut = \App\Models\TransferItemHistory::where('item_code', $stock->abaya_code)
+                $transfersOut = \App\Models\TransferItemHistory::where('item_code', $stock->stock_code)
                     ->where('quantity_pulled', '>', 0)
                     ->with('transfer')
                     ->get();
@@ -1690,7 +1412,7 @@ public function add_quantity(Request $request)
                 $details = array_values($aggregated);
             } elseif ($type === 'received') {
                 // Get all transfers IN (from channels/boutiques to main/warehouse)
-                $transfersIn = \App\Models\TransferItemHistory::where('item_code', $stock->abaya_code)
+                $transfersIn = \App\Models\TransferItemHistory::where('item_code', $stock->stock_code)
                     ->where('quantity_pushed', '>', 0)
                     ->with('transfer')
                     ->get();
@@ -1811,9 +1533,9 @@ public function add_quantity(Request $request)
     }
 
     /**
-     * Show abaya materials page
+     * Show stock materials page
      */
-    public function abayaMaterials()
+    public function stockMaterials()
     {
         if (!Auth::check()) {
             return redirect()->route('login_page')->with('error', 'Please login first');
@@ -1825,25 +1547,25 @@ public function add_quantity(Request $request)
             return redirect()->route('login_page')->with('error', 'Permission denied');
         }
 
-        return view('stock.abaya_materials');
+        return view('stock.stock_materials');
     }
 
     /**
-     * Get abayas with materials (paginated)
+     * Get stocks with materials (paginated)
      */
-    public function getAbayaMaterials(Request $request)
+    public function getstockMaterials(Request $request)
     {
         try {
             $page = $request->input('page', 1);
             $perPage = $request->input('per_page', 10);
             $search = $request->input('search', '');
 
-            $query = Stock::with(['abayaMaterials', 'images', 'category']);
+            $query = Stock::with(['stockMaterials', 'images', 'category']);
 
             // Apply search filter
             if (!empty($search)) {
                 $query->where(function($q) use ($search) {
-                    $q->where('abaya_code', 'like', '%' . $search . '%')
+                    $q->where('stock_code', 'like', '%' . $search . '%')
                       ->orWhere('design_name', 'like', '%' . $search . '%')
                       ->orWhere('barcode', 'like', '%' . $search . '%');
                 });
@@ -1852,12 +1574,12 @@ public function add_quantity(Request $request)
             $stocks = $query->orderBy('id', 'DESC')->paginate($perPage, ['*'], 'page', $page);
 
             $formattedData = $stocks->map(function($stock) {
-                // Get materials for this abaya
+                // Get materials for this stock
                 $materials = [];
-                if ($stock->abayaMaterials && $stock->abayaMaterials->count() > 0) {
-                    $abayaMaterial = $stock->abayaMaterials->first();
-                    if ($abayaMaterial && $abayaMaterial->materials) {
-                        foreach ($abayaMaterial->materials as $materialData) {
+                if ($stock->stockMaterials && $stock->stockMaterials->count() > 0) {
+                    $stockMaterial = $stock->stockMaterials->first();
+                    if ($stockMaterial && $stockMaterial->materials) {
+                        foreach ($stockMaterial->materials as $materialData) {
                             $material = Material::find($materialData['material_id'] ?? null);
                             if ($material) {
                                 $materials[] = [
@@ -1882,7 +1604,7 @@ public function add_quantity(Request $request)
 
                 return [
                     'id' => $stock->id,
-                    'abaya_code' => $stock->abaya_code ?? '—',
+                    'stock_code' => $stock->stock_code ?? '—',
                     'design_name' => $stock->design_name ?? '—',
                     'barcode' => $stock->barcode ?? '—',
                     'category' => $stock->category ? $stock->category->category_name : '—',
@@ -1918,7 +1640,7 @@ public function add_quantity(Request $request)
         
         StockAuditLog::create([
             'stock_id' => $stock->id,
-            'abaya_code' => $stock->abaya_code,
+            'stock_code' => $stock->stock_code,
             'barcode' => $stock->barcode,
             'design_name' => $stock->design_name,
             'operation_type' => $operationType,
@@ -1937,38 +1659,38 @@ public function add_quantity(Request $request)
     }
 
     /**
-     * Deduct required materials from tailor inventory when abayas are added to stock
+     * Deduct required materials from tailor inventory when stocks are added to stock
      */
-    private function deductMaterialsFromTailor($stockId, $tailorId, $abayaQuantity)
+    private function deductMaterialsFromTailor($stockId, $tailorId, $stockQuantity)
     {
         try {
-            // Get required materials for this abaya
-            $abayaMaterial = AbayaMaterial::where('abaya_id', $stockId)->first();
+            // Get required materials for this stock
+            $stockMaterial = stockMaterial::where('stock_id', $stockId)->first();
             
-            if (!$abayaMaterial || !$abayaMaterial->materials) {
-                return; // No materials required for this abaya
+            if (!$stockMaterial || !$stockMaterial->materials) {
+                return; // No materials required for this stock
             }
 
             // Process each required material
-            foreach ($abayaMaterial->materials as $materialData) {
+            foreach ($stockMaterial->materials as $materialData) {
                 $materialId = $materialData['material_id'] ?? null;
-                $requiredPerAbaya = floatval($materialData['quantity'] ?? 0);
+                $requiredPerstock = floatval($materialData['quantity'] ?? 0);
                 
-                if (!$materialId || $requiredPerAbaya <= 0) {
+                if (!$materialId || $requiredPerstock <= 0) {
                     continue;
                 }
 
-                // Calculate total required quantity (per abaya * quantity of abayas added)
-                $totalRequired = $requiredPerAbaya * $abayaQuantity;
+                // Calculate total required quantity (per stock * quantity of stocks added)
+                $totalRequired = $requiredPerstock * $stockQuantity;
 
-                // Find TailorMaterial records for this tailor, material, and abaya
+                // Find TailorMaterial records for this tailor, material, and stock
                 $tailorMaterials = TailorMaterial::where('tailor_id', $tailorId)
                     ->where('material_id', $materialId)
                     ->where(function($q) use ($stockId) {
-                        $q->where('abaya_id', $stockId)
-                          ->orWhereNull('abaya_id'); // Also check materials not tied to specific abaya
+                        $q->where('stock_id', $stockId)
+                          ->orWhereNull('stock_id'); // Also check materials not tied to specific stock
                     })
-                    ->orderBy('abaya_id', 'desc') // Prefer abaya-specific materials first
+                    ->orderBy('stock_id', 'desc') // Prefer stock-specific materials first
                     ->get();
 
                 // Deduct from tailor materials
@@ -1998,18 +1720,18 @@ public function add_quantity(Request $request)
     }
 
     /**
-     * Deduct materials from main inventory when abayas are added
+     * Deduct materials from main inventory when stocks are added
      * Also deducts from tailor inventory if tailor is provided
      * Creates MaterialQuantityAudit entries for each material deducted
      */
-    private function deductMaterialsFromInventory($stockId, $abayaQuantity, $source = 'stock', $tailorId = null, $tailorName = null, $specialOrderId = null, $specialOrderNumber = null)
+    private function deductMaterialsFromInventory($stockId, $stockQuantity, $source = 'stock', $tailorId = null, $tailorName = null, $specialOrderId = null, $specialOrderNumber = null)
     {
         try {
-            // Get required materials for this abaya
-            $abayaMaterial = AbayaMaterial::where('abaya_id', $stockId)->first();
+            // Get required materials for this stock
+            $stockMaterial = stockMaterial::where('stock_id', $stockId)->first();
             
-            if (!$abayaMaterial || !$abayaMaterial->materials) {
-                return; // No materials required for this abaya
+            if (!$stockMaterial || !$stockMaterial->materials) {
+                return; // No materials required for this stock
             }
 
             $stock = Stock::find($stockId);
@@ -2022,11 +1744,11 @@ public function add_quantity(Request $request)
             $userId = $user ? $user->id : null;
 
             // Process each required material
-            foreach ($abayaMaterial->materials as $materialData) {
+            foreach ($stockMaterial->materials as $materialData) {
                 $materialId = $materialData['material_id'] ?? null;
-                $requiredPerAbaya = floatval($materialData['quantity'] ?? 0);
+                $requiredPerstock = floatval($materialData['quantity'] ?? 0);
                 
-                if (!$materialId || $requiredPerAbaya <= 0) {
+                if (!$materialId || $requiredPerstock <= 0) {
                     continue;
                 }
 
@@ -2036,8 +1758,8 @@ public function add_quantity(Request $request)
                     continue;
                 }
 
-                // Calculate total required quantity (per abaya * quantity of abayas added)
-                $totalRequired = $requiredPerAbaya * $abayaQuantity;
+                // Calculate total required quantity (per stock * quantity of stocks added)
+                $totalRequired = $requiredPerstock * $stockQuantity;
 
                 // Get current quantity based on unit
                 $getCurrentQuantity = function($mat) {
@@ -2064,14 +1786,14 @@ public function add_quantity(Request $request)
                 $previousTailorMaterialQuantity = 0;
                 $newTailorMaterialQuantity = 0;
                 
-                // Find TailorMaterial records for this tailor, material, and abaya
+                // Find TailorMaterial records for this tailor, material, and stock
                 $tailorMaterials = TailorMaterial::where('tailor_id', $tailorId)
                     ->where('material_id', $materialId)
                     ->where(function($q) use ($stockId) {
-                        $q->where('abaya_id', $stockId)
-                          ->orWhereNull('abaya_id'); // Also check materials not tied to specific abaya
+                        $q->where('stock_id', $stockId)
+                          ->orWhereNull('stock_id'); // Also check materials not tied to specific stock
                     })
-                    ->orderBy('abaya_id', 'desc') // Prefer abaya-specific materials first
+                    ->orderBy('stock_id', 'desc') // Prefer stock-specific materials first
                     ->get();
 
                 // Calculate total previous tailor material quantity
@@ -2112,8 +1834,8 @@ public function add_quantity(Request $request)
                         $negativeTailorMaterial = TailorMaterial::where('tailor_id', $tailorId)
                             ->where('material_id', $materialId)
                             ->where(function($q) use ($stockId) {
-                                $q->where('abaya_id', $stockId)
-                                  ->orWhereNull('abaya_id');
+                                $q->where('stock_id', $stockId)
+                                  ->orWhereNull('stock_id');
                             })
                             ->first();
                         
@@ -2127,9 +1849,9 @@ public function add_quantity(Request $request)
                             $negativeTailorMaterial = TailorMaterial::create([
                                 'tailor_id' => $tailorId,
                                 'material_id' => $materialId,
-                                'abaya_id' => $stockId,
+                                'stock_id' => $stockId,
                                 'quantity' => -$remainingToDeduct,
-                                'abayas_expected' => 0,
+                                'stocks_expected' => 0,
                                 'status' => 'pending',
                                 'sent_date' => now()->format('Y-m-d'),
                                 'added_by' => $userName,
@@ -2147,8 +1869,8 @@ public function add_quantity(Request $request)
                     $tailorMaterials = TailorMaterial::where('tailor_id', $tailorId)
                         ->where('material_id', $materialId)
                         ->where(function($q) use ($stockId) {
-                            $q->where('abaya_id', $stockId)
-                              ->orWhereNull('abaya_id');
+                            $q->where('stock_id', $stockId)
+                              ->orWhereNull('stock_id');
                         })
                         ->get();
                     
@@ -2168,7 +1890,7 @@ public function add_quantity(Request $request)
                     MaterialQuantityAudit::create([
                         'material_id' => $materialId,
                         'stock_id' => $stockId,
-                        'abaya_code' => $stock->abaya_code,
+                        'stock_code' => $stock->stock_code,
                         'source' => $source,
                         'status' => $status,
                         'special_order_id' => $specialOrderId,
@@ -2186,7 +1908,7 @@ public function add_quantity(Request $request)
                         'tailor_name' => $tailorName,
                         'user_id' => $userId,
                         'added_by' => $userName,
-                        'notes' => ($sourceLabels[$source] ?? ucfirst($source)) . ' - Abaya: ' . $stock->abaya_code . ', Quantity: ' . $abayaQuantity . ', Material per abaya: ' . $requiredPerAbaya . ', Total deducted from tailor: ' . $totalRequired . ' (Main inventory unchanged)',
+                        'notes' => ($sourceLabels[$source] ?? ucfirst($source)) . ' - stock: ' . $stock->stock_code . ', Quantity: ' . $stockQuantity . ', Material per stock: ' . $requiredPerstock . ', Total deducted from tailor: ' . $totalRequired . ' (Main inventory unchanged)',
                     ]);
                 } catch (\Exception $e) {
                     \Log::error('Error creating material quantity audit: ' . $e->getMessage());
@@ -2228,7 +1950,7 @@ public function add_quantity(Request $request)
             $locale = session('locale', 'en');
 
             // Get material audit logs
-            $query = MaterialAuditLog::with(['stock', 'stock.abayaMaterials', 'tailor'])
+            $query = MaterialAuditLog::with(['stock', 'stock.stockMaterials', 'tailor'])
                 ->whereHas('stock')
                 ->orderBy('added_at', 'DESC')
                 ->orderBy('id', 'DESC');
@@ -2236,7 +1958,7 @@ public function add_quantity(Request $request)
             // Apply search filter
             if (!empty($search)) {
                 $query->where(function($q) use ($search) {
-                    $q->where('abaya_code', 'like', '%' . $search . '%')
+                    $q->where('stock_code', 'like', '%' . $search . '%')
                       ->orWhere('design_name', 'like', '%' . $search . '%')
                       ->orWhere('barcode', 'like', '%' . $search . '%');
                 });
@@ -2244,10 +1966,10 @@ public function add_quantity(Request $request)
 
             $auditLogs = $query->get();
 
-            // Group logs by barcode/abaya_code/design_name and same added_at (within 1 minute) and same user
+            // Group logs by barcode/stock_code/design_name and same added_at (within 1 minute) and same user
             $groupedLogs = [];
             foreach ($auditLogs as $log) {
-                $key = ($log->barcode ?? '') . '|' . ($log->abaya_code ?? '') . '|' . ($log->design_name ?? '');
+                $key = ($log->barcode ?? '') . '|' . ($log->stock_code ?? '') . '|' . ($log->design_name ?? '');
                 $addedAt = $log->added_at ? $log->added_at->format('Y-m-d H:i') : ($log->created_at ? $log->created_at->format('Y-m-d H:i') : '');
                 $userId = $log->user_id;
                 
@@ -2280,12 +2002,12 @@ public function add_quantity(Request $request)
                     return null;
                 }
 
-                // Get materials required for abaya
+                // Get materials required for stock
                 $requiredMaterials = [];
                 $materialStockQuantities = [];
-                $abayaMaterial = AbayaMaterial::where('abaya_id', $stock->id)->first();
-                if ($abayaMaterial && $abayaMaterial->materials) {
-                    foreach ($abayaMaterial->materials as $materialData) {
+                $stockMaterial = stockMaterial::where('stock_id', $stock->id)->first();
+                if ($stockMaterial && $stockMaterial->materials) {
+                    foreach ($stockMaterial->materials as $materialData) {
                         $material = Material::find($materialData['material_id'] ?? null);
                         if ($material) {
                             // Multiply required quantity by total_quantity (sum of all grouped entries)
@@ -2324,18 +2046,18 @@ public function add_quantity(Request $request)
                     }
                 }
 
-                // Get materials sent to tailor for this abaya
+                // Get materials sent to tailor for this stock
                 $tailorMaterialsInfo = [];
                 $materialBalances = [];
                 
                 if (!empty($requiredMaterials)) {
                     $materialIds = array_column($requiredMaterials, 'id');
                     
-                    // Get tailor materials for this abaya and tailor (if applicable)
+                    // Get tailor materials for this stock and tailor (if applicable)
                     $tailorMaterialsQuery = TailorMaterial::whereIn('material_id', $materialIds)
                         ->where(function($q) use ($stock, $log) {
-                            $q->where('abaya_id', $stock->id)
-                              ->orWhereNull('abaya_id');
+                            $q->where('stock_id', $stock->id)
+                              ->orWhereNull('stock_id');
                         });
                     
                     // If log has tailor_id, filter by it
@@ -2399,7 +2121,7 @@ public function add_quantity(Request $request)
 
                 return [
                     'id' => $log->id,
-                    'abaya_code' => $log->abaya_code ?? '-',
+                    'stock_code' => $log->stock_code ?? '-',
                     'design_name' => $log->design_name ?? '-',
                     'barcode' => $log->barcode ?? '-',
                     'tailor_name' => $log->tailor_name ?? '-',
@@ -2515,12 +2237,12 @@ public function add_quantity(Request $request)
         // ---------------- STOCK ARRAY
         $insert_array = [
             'id'        => $item['ad_id'],        // MANUAL ID
-            'abaya_code'=> $item['store_code'],
+            'stock_code'=> $item['store_code'],
             'barcode'   => $barcode,
             'category_id'=> $category_id,
             'sales_price'=> $item['ad_price'],
             'design_name'=> $item['ad_title'],
-            'abaya_notes'=> $item['ad_description'],
+            'stock_notes'=> $item['ad_description'],
             'notification_limit'=>5,
             'website_data_delivery_status'=>2,
         ];

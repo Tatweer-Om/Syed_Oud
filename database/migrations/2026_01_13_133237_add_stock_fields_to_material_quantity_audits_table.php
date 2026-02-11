@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::table('material_quantity_audits', function (Blueprint $table) {
             $table->unsignedBigInteger('stock_id')->nullable()->after('material_id');
-            $table->string('abaya_code')->nullable()->after('stock_id');
-            $table->string('source')->nullable()->after('abaya_code'); // 'stock', 'special_order', 'manage_quantity'
+            $table->string('stock_code')->nullable()->after('stock_id');
+            $table->string('source')->nullable()->after('stock_code'); // 'stock', 'special_order', 'manage_quantity'
             $table->string('status')->nullable()->after('source'); // 'success', 'insufficient', 'error'
             
             $table->index('stock_id');
-            $table->index('abaya_code');
+            $table->index('stock_code');
             $table->index('source');
             $table->foreign('stock_id')->references('id')->on('stocks')->onDelete('set null');
         });
@@ -32,9 +32,9 @@ return new class extends Migration
         Schema::table('material_quantity_audits', function (Blueprint $table) {
             $table->dropForeign(['stock_id']);
             $table->dropIndex(['stock_id']);
-            $table->dropIndex(['abaya_code']);
+            $table->dropIndex(['stock_code']);
             $table->dropIndex(['source']);
-            $table->dropColumn(['stock_id', 'abaya_code', 'source', 'status']);
+            $table->dropColumn(['stock_id', 'stock_code', 'source', 'status']);
         });
     }
 };

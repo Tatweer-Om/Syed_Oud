@@ -20,13 +20,13 @@
                 <!-- Search -->
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium mb-2 text-gray-700">
-                        {{ trans('messages.search_material_or_tailor', [], session('locale')) ?: 'Search by material name or tailor name' }}
+                        {{ trans('messages.search_material_placeholder', [], session('locale')) ?: 'Search by material name' }}
                     </label>
                     <div class="relative flex items-center bg-white/90 backdrop-blur-md rounded-2xl shadow-md border border-[var(--accent-color)] px-3 py-2">
                         <input
                             id="search_material"
                             type="text"
-                            placeholder="{{ trans('messages.search_material_or_tailor', [], session('locale')) ?: 'Search by material name or tailor name' }}"
+                            placeholder="{{ trans('messages.search_material_placeholder', [], session('locale')) ?: 'Search by material name' }}"
                             class="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-[var(--text-primary)] placeholder-gray-400 text-sm px-3" />
                         <button
                             id="search_btn"
@@ -78,22 +78,17 @@
                         <tr>
                             <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.date', [], session('locale')) }}</th>
                             <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.material_name', [], session('locale')) }}</th>
-                            <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.abaya_code', [], session('locale')) ?: 'Abaya Code' }}</th>
                             <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.source', [], session('locale')) ?: 'Source' }}</th>
                             <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.operation_type', [], session('locale')) ?: 'Operation Type' }}</th>
                             <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.previous_stock', [], session('locale')) ?: 'Previous Stock' }}</th>
                             <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.change', [], session('locale')) ?: 'Change' }}</th>
                             <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.remaining_quantity', [], session('locale')) ?: 'Remaining Quantity' }}</th>
-                            <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.previous_tailor_material', [], session('locale')) ?: 'Previous Tailor Material' }}</th>
-                            <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.tailor_material_change', [], session('locale')) ?: 'Tailor Material Change' }}</th>
-                            <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.new_tailor_material', [], session('locale')) ?: 'New Tailor Material' }}</th>
-                            <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.tailor_name', [], session('locale')) }}</th>
                             <th class="px-2 py-2 text-xs font-semibold text-[var(--text-secondary)] border border-gray-300">{{ trans('messages.added_by', [], session('locale')) ?: 'Added By' }}</th>
                         </tr>
                     </thead>
                     <tbody id="auditTableBody">
                         <tr>
-                            <td colspan="13" class="px-2 py-4 text-xs text-center text-gray-500 border border-gray-300">
+                            <td colspan="8" class="px-2 py-4 text-xs text-center text-gray-500 border border-gray-300">
                                 {{ trans('messages.loading', [], session('locale')) }}...
                             </td>
                         </tr>

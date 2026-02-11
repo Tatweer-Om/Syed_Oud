@@ -24,7 +24,7 @@
                         rows += `
                         <tr class="hover:bg-pink-50/50 transition-colors">
                             <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)] font-semibold">${item.barcode || '-'}</td>
-                            <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)] font-semibold">${item.abaya_code || '-'}</td>
+                            <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)] font-semibold">${item.stock_code || '-'}</td>
                             <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)]">${item.design_name || '-'}</td>
                             <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)] font-semibold text-green-600 ${addedClass}" 
                                 ${item.quantity_added > 0 ? `onclick="showAuditDetails(${item.stock_id}, 'added')"` : ''}>

@@ -1,174 +1,108 @@
 <script>
- $(document).ready(function() {
-    $('.delete-image').click(function() {
-        let imageId = $(this).data('id');
-        let token = "{{ csrf_token() }}";
+$(document).ready(function() {
+    // Image preview
+    $('#image').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#image_preview_img').attr('src', e.target.result);
+                $('#image_preview').removeClass('hidden');
+            };
+            reader.readAsDataURL(file);
+        } else {
+            $('#image_preview').addClass('hidden');
+        }
+    });
 
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: '/stock/image/' + imageId,
-                    type: 'DELETE',
-                    data: {
-                        _token: token
-                    },
-                    success: function(response) {
-                        // Remove image div from DOM
-                        $('#image-' + imageId).remove();
+    $('#cost_price, #sales_price, #discount, #tax').on('input blur', function() {
+        const value = parseFloat($(this).val());
+        if (value < 0 || isNaN(value)) {
+            $(this).val(0);
+        }
+    });
+    // Notification limit: natural numbers only (no decimals)
+    $('#notification_limit').on('input blur', function() {
+        let val = $(this).val();
+        const num = parseInt(val, 10);
+        if (isNaN(num) || num < 0) {
+            $(this).val('');
+        } else {
+            $(this).val(num);
+        }
+    });
 
-                        Swal.fire(
-                            'Deleted!',
-                            response.message,
-                            'success'
-                        );
-                    },
-                    error: function(xhr) {
-                        Swal.fire(
-                            'Error!',
-                            'Something went wrong while deleting the image.',
-                            'error'
-                        );
-                    }
-                });
+    $('#update_stock').on('submit', function(e) {
+        e.preventDefault();
+
+        let $form = $(this);
+        let $submitBtn = $form.find('button[type="submit"]');
+        
+        if ($submitBtn.prop('disabled')) {
+            return false;
+        }
+
+        let stock_name = $('#stock_name').val().trim();
+        let category_id = $('#category_id').val();
+        let barcode = $('#barcode').val().trim();
+        let cost_price = $('#cost_price').val();
+        let sales_price = $('#sales_price').val();
+
+        if (!stock_name) {
+            show_notification('error', '<?= trans("messages.enter_stock_name", [], session("locale")) ?: "Please enter stock name" ?>');
+            return;
+        }
+        if (!category_id) {
+            show_notification('error', '<?= trans("messages.enter_category", [], session("locale")) ?: "Please select a category" ?>');
+            return;
+        }
+        if (!barcode) {
+            show_notification('error', '<?= trans("messages.enter_barcode", [], session("locale")) ?: "Please enter barcode" ?>');
+            return;
+        }
+        if (!cost_price || parseFloat(cost_price) < 0) {
+            show_notification('error', '<?= trans("messages.enter_cost_price", [], session("locale")) ?: "Please enter cost price" ?>');
+            return;
+        }
+        if (!sales_price || parseFloat(sales_price) < 0) {
+            show_notification('error', '<?= trans("messages.enter_sales_price", [], session("locale")) ?: "Please enter sales price" ?>');
+            return;
+        }
+
+        let originalBtnText = $submitBtn.html();
+        $submitBtn.prop('disabled', true).css('opacity', '0.6').html('<?= trans("messages.processing", [], session("locale")) ?>...');
+
+        let formData = new FormData(this);
+
+        $.ajax({
+            url: "{{ route('update_stock') }}",
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            success: function(response) {
+                if (response.status === 'success') {
+                    show_notification('success', response.message || 'Stock updated successfully!');
+                    setTimeout(function() {
+                        window.location.href = response.redirect_url || '{{ url("view_stock") }}';
+                    }, 1500);
+                } else {
+                    $submitBtn.prop('disabled', false).css('opacity', '1').html(originalBtnText);
+                }
+            },
+            error: function(xhr) {
+                $submitBtn.prop('disabled', false).css('opacity', '1').html(originalBtnText);
+                if (xhr.status === 422) {
+                    let errors = xhr.responseJSON.errors;
+                    $.each(errors, function(key, value) {
+                        show_notification('error', value[0]); 
+                    });
+                } else {
+                    show_notification('error', 'Something went wrong!');
+                }
             }
         });
     });
-
-  
-
-$('#update_abaya').on('submit', function(e) {
-    e.preventDefault();
-
-    let $form = $(this);
-    let $submitBtn = $form.find('button[type="submit"]');
-    
-    // Check if already submitting
-    if ($submitBtn.prop('disabled')) {
-        return false;
-    }
-
-    let abaya_code = $('#abaya_code').val().trim();
-    let barcode = $('#barcode').val().trim();
-    let design_name = $('#design_name').val();
-    let tailor = $('#tailor_id').val();
-
-    if (!abaya_code) {
-        show_notification('error', '<?= trans("messages.enter_abaya_code", [], session("locale")) ?>');
-        return;
-    }
-    if (!barcode) {
-        show_notification('error', '<?= trans("messages.enter_barcode", [], session("locale")) ?>');
-        return;
-    }
-    if (!design_name) {
-        show_notification('error', '<?= trans("messages.enter_design_name", [], session("locale")) ?>');
-        return;
-    }
-  
-
-    // Store original button text and disable button
-    let originalBtnText = $submitBtn.html();
-    $submitBtn.prop('disabled', true).css('opacity', '0.6').html('<?= trans("messages.processing", [], session("locale")) ?>...');
-
-    let formData = new FormData(this);
-
-    // Manually append files from Alpine.js
-  
-
-    $.ajax({
-        url: "{{ route('update_stock') }}",
-        type: "POST",
-        data: formData,
-        contentType: false,
-        processData: false,
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        beforeSend: function() {
-        },
-        success: function(response) {
-            if (response.status === 'success') {
-                show_notification('success', response.message || 'Stock updated successfully!');
-                // Redirect to view_stock after a short delay
-                setTimeout(function() {
-                    if (response.redirect_url) {
-                        window.location.href = response.redirect_url;
-                    } else {
-                        window.location.href = '{{ url("view_stock") }}';
-                    }
-                }, 1500);
-            } else {
-                // Re-enable button on unexpected response
-                $submitBtn.prop('disabled', false).css('opacity', '1').html(originalBtnText);
-            }
-        },
-        error: function(xhr) {
-            // Re-enable button on error
-            $submitBtn.prop('disabled', false).css('opacity', '1').html(originalBtnText);
-            
-            if (xhr.status === 422) {
-                let errors = xhr.responseJSON.errors;
-                $.each(errors, function(key, value) {
-                    show_notification('error', value[0]); 
-                });
-            } else {
-                show_notification('error', 'Something went wrong!');
-            }
-        }
-    });
 });
-
-});
-
-
-document.getElementById('material_image').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = document.getElementById('imagePreview');
-        img.src = e.target.result;
-        img.classList.remove('hidden');
-
-        // Hide icon and text
-        document.getElementById('uploadIcon').style.display = 'none';
-        document.getElementById('uploadText').style.display = 'none';
-    };
-    reader.readAsDataURL(file);
-});
-function imageUploader() {
-    return {
-        images: [],  // preview images
-
-        handleFiles(event) {
-            const files = event.target.files;
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.images.push({
-                        file: file,
-                        url: e.target.result
-                    });
-                };
-                reader.readAsDataURL(file);
-            }
-        },
-
-        removeImage(index) {
-            this.images.splice(index, 1);
-        }
-    };
-}
-
-
 </script>

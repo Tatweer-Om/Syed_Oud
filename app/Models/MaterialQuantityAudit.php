@@ -11,7 +11,7 @@ class MaterialQuantityAudit extends Model
     protected $fillable = [
         'material_id',
         'stock_id',
-        'abaya_code',
+        'stock_code',
         'source',
         'status',
         'special_order_id',

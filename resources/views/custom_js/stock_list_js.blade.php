@@ -34,82 +34,46 @@
                 // --- Desktop Table ---
                 let tableRows = "";
                 $.each(res.data, function(index, stock) {
-                    let image = stock.images.length ? stock.images[0].image_path : '';
-
-                  // Get first color_size combination if available
-                    let size = '-';
-                    let color = '-';
-                    let quantity = 0;
-                    
-                    if (stock.color_sizes && stock.color_sizes.length > 0) {
-                        const first = stock.color_sizes[0];
-                        size = first.size ? (first.size.size_name_ar || first.size.size_name_en || '-') : '-';
-                        color = first.color ? (first.color.color_name_ar || first.color.color_name_en || '-') : '-';
-                        // Calculate total quantity from all color_sizes
-                        quantity = stock.color_sizes.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
-                    }
-
+                    const quantity = parseFloat(stock.quantity) || 0;
                     const categoryName = stock.category ? stock.category.category_name : '-';
-                    
-                    // Determine quantity status
                     let quantityStatus = 'out_of_stock';
-                    if (quantity === 0) {
-                        quantityStatus = 'out_of_stock';
-                    } else if (quantity <= 5) {
-                        quantityStatus = 'low';
-                    } else {
-                        quantityStatus = 'available';
-                    }
-                    
-                    // Format sales price
-                    const salesPrice = stock.sales_price ? parseFloat(stock.sales_price).toFixed(2) : '-';
+                    if (quantity > 0 && quantity <= 5) quantityStatus = 'low';
+                    else if (quantity > 5) quantityStatus = 'available';
+                    const salesPrice = stock.sales_price ? parseFloat(stock.sales_price).toFixed(3) : '-';
                     const formattedSalesPrice = salesPrice !== '-' ? `${salesPrice} OMR` : '-';
-                    
+                    const imageUrl = stock.image ? (stock.image.startsWith('http') ? stock.image : '/' + stock.image.replace(/^\/+/, '')) : '';
+
                     tableRows += `
                 <tr class="border-t hover:bg-pink-50/60 transition" data-id="${stock.id}" data-quantity-status="${quantityStatus}">
                     <td class="px-3 sm:px-4 md:px-6 py-3 text-center">
-                        <div class="flex items-start justify-center gap-3">
-                            <img src="${image}" class="w-12 h-16 object-cover rounded-md flex-shrink-0" />
-                            <div class="flex flex-col items-start text-left min-w-0 flex-1">
-                                <span class="font-bold break-words">${stock.design_name ?? '-'}</span>
-                                ${categoryName !== '-' ? `<span class="text-sm text-gray-600">(${categoryName})</span>` : ''}
-                            </div>
+                        <div class="flex items-center justify-center gap-3">
+                            ${imageUrl ? `<img src="${imageUrl}" alt="" class="w-12 h-16 object-cover rounded-md flex-shrink-0" onerror="this.style.display='none'" />` : ''}
+                            <div class="flex flex-col items-center text-left min-w-0">
+                                <span class="font-bold break-words">${stock.stock_name ?? '-'}</span>
+                            ${categoryName !== '-' ? `<span class="text-sm text-gray-600">(${categoryName})</span>` : ''}
                         </div>
                     </td>
-                    <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap font-medium">${stock.abaya_code || '-'}</td>
-                    <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap">${color}</td>
-                    <td class="px-3 sm:px-4 md:px-6 py-3 text-center font-bold whitespace-nowrap">${quantity}</td>
+                    <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap font-medium">${stock.barcode || '-'}</td>
+                    <td class="px-3 sm:px-4 md:px-6 py-3 text-center font-bold whitespace-nowrap d-none">${quantity}</td>
                     <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap font-semibold text-[var(--primary-color)]">${formattedSalesPrice}</td>
-                    <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap">${stock.tailor_names_display || '-'}</td>
                     <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap">
-                        <div class="flex justify-center gap-2 text-[12px] font-semibold text-gray-700">
-                           <button class="flex flex-col items-center gap-1 hover:text-purple-600 transition"
-                                    onclick="openFullStockDetails(${stock.id})">
-                            <span class="material-symbols-outlined bg-pink-50 text-[var(--primary-color)] p-2 rounded-full text-base">info</span>
+                        <div class="flex flex-wrap justify-center gap-2 text-[12px] font-semibold text-gray-700">
+                            <button class="flex flex-col items-center gap-1 hover:text-purple-600 transition" onclick="openStockDetails(${stock.id})" title="${trans.details}">
+                                <span class="material-symbols-outlined bg-purple-50 text-purple-500 p-2 rounded-full text-base">info</span>
                                 ${trans.details}
                             </button>
-                        <button class="flex flex-col items-center gap-1 hover:text-[var(--primary-color)] transition d-none"
-                                x-on:click="$dispatch('open-stock-details', ${stock.id})">
-                            <span class="material-symbols-outlined bg-pink-50 text-[var(--primary-color)] p-2 rounded-full text-base">info</span>
-                            ${trans.details}
-                        </button>
-                                <button class="openQuantityBtn flex flex-col items-center gap-1 hover:text-green-600 transition"
-                                onclick="openStockQuantity(${stock.id})">
-                            <span class="material-symbols-outlined bg-green-50 text-green-600 p-2 rounded-full text-base">add</span>
-                            ${trans.enter_quantity}
-                        </button>
-
-
-                            <button class="flex flex-col items-center gap-1 hover:text-blue-600 transition"
-                                    onclick="window.location.href='/edit_stock/${stock.id}?page=' + (currentStockPage || 1)">
+                            <button class="flex flex-col items-center gap-1 hover:text-green-600 transition" onclick="openStockQuantity(${stock.id}, ${quantity})" title="${trans.enter_quantity}">
+                                <span class="material-symbols-outlined bg-green-50 text-green-600 p-2 rounded-full text-base">add</span>
+                                ${trans.enter_quantity}
+                            </button>
+                            <button class="flex flex-col items-center gap-1 hover:text-blue-600 transition" onclick="window.location.href='/edit_stock/${stock.id}?page=' + (currentStockPage || 1)">
                                 <span class="material-symbols-outlined bg-blue-50 text-blue-500 p-2 rounded-full text-base">edit</span>
                                 ${trans.edit}
                             </button>
-
                             <button class="flex flex-col items-center gap-1 hover:text-red-600 transition delete-stock-btn">
-                            <span class="material-symbols-outlined bg-red-50 text-red-500 p-2 rounded-full text-base">delete</span>
-                            ${trans.delete}
-                        </button>
+                                <span class="material-symbols-outlined bg-red-50 text-red-500 p-2 rounded-full text-base">delete</span>
+                                ${trans.delete}
+                            </button>
                         </div>
                     </td>
                 </tr>`;
@@ -119,72 +83,44 @@
                 // --- Mobile Cards ---
                 let mobileCards = '';
                 $.each(res.data, function(index, stock) {
-                    let image = stock.images.length ? stock.images[0].image_path : '';
-                    // Get first color_size combination if available
-                    let size = '-';
-                    let color = '-';
-                    let quantity = 0;
-                    
-                    if (stock.color_sizes && stock.color_sizes.length > 0) {
-                        const first = stock.color_sizes[0];
-                        size = first.size ? (first.size.size_name_ar || first.size.size_name_en || '-') : '-';
-                        color = first.color ? (first.color.color_name_ar || first.color.color_name_en || '-') : '-';
-                        // Calculate total quantity from all color_sizes
-                        quantity = stock.color_sizes.reduce((sum, item) => sum + (parseInt(item.qty) || 0), 0);
-                    }
-
+                    const quantity = parseFloat(stock.quantity) || 0;
                     const categoryName = stock.category ? stock.category.category_name : '-';
-                    
-                    // Determine quantity status for mobile cards
                     let quantityStatusMobile = 'out_of_stock';
-                    if (quantity === 0) {
-                        quantityStatusMobile = 'out_of_stock';
-                    } else if (quantity <= 5) {
-                        quantityStatusMobile = 'low';
-                    } else {
-                        quantityStatusMobile = 'available';
-                    }
-                    
-                    // Format sales price for mobile
-                    const salesPriceMobile = stock.sales_price ? parseFloat(stock.sales_price).toFixed(2) : '-';
+                    if (quantity > 0 && quantity <= 5) quantityStatusMobile = 'low';
+                    else if (quantity > 5) quantityStatusMobile = 'available';
+                    const salesPriceMobile = stock.sales_price ? parseFloat(stock.sales_price).toFixed(3) : '-';
                     const formattedSalesPriceMobile = salesPriceMobile !== '-' ? `${salesPriceMobile} OMR` : '-';
-                    
+
+                    const imageUrlMobile = stock.image ? (stock.image.startsWith('http') ? stock.image : '/' + stock.image.replace(/^\/+/, '')) : '';
                     mobileCards += `
                 <div class="bg-white rounded-xl shadow-sm border border-pink-100 p-4 flex flex-col gap-3" data-id="${stock.id}" data-quantity-status="${quantityStatusMobile}">
                     <div class="flex gap-4">
-                        <div class="w-20 h-24 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
-                            <img src="${image}" alt="${stock.abaya_code || trans.design}" class="w-full h-full object-cover" onerror="this.src='/images/placeholder.png'" />
-                        </div>
+                        ${imageUrlMobile ? `<div class="w-20 h-24 rounded-md overflow-hidden bg-gray-100 flex-shrink-0"><img src="${imageUrlMobile}" alt="" class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" /></div>` : ''}
                         <div class="flex-1 text-sm">
                             <div class="flex justify-between items-center mb-2">
-                                <h3 class="font-bold text-gray-900">${stock.abaya_code || '-'}</h3>
+                                <h3 class="font-bold text-gray-900">${stock.stock_name ?? '-'}</h3>
                                 <span class="text-[var(--primary-color)] font-semibold text-xs">${formattedSalesPriceMobile}</span>
                             </div>
-                            <p class="text-gray-600 text-xs">${trans.design}: ${stock.design_name ?? '-'}</p>
                             ${categoryName !== '-' ? `<p class="text-gray-600 text-xs">${trans.category}: ${categoryName}</p>` : ''}
-                            <p class="text-gray-600 text-xs">${trans.color}: ${color}</p>
-                            <p class="text-gray-600 text-xs font-semibold">${trans.quantity}: ${quantity}</p>
+                            <p class="text-gray-600 text-xs">Barcode: ${stock.barcode || '-'}</p>
+                            <p class="text-gray-600 text-xs font-semibold d-none">${trans.quantity}: ${quantity}</p>
                         </div>
                     </div>
                     <div class="mt-4 border-t pt-3">
-                        <div class="flex justify-around text-xs font-semibold text-gray-600">
-                            <button class="flex flex-col items-center gap-1 hover:text-[var(--primary-color)] transition"
-                                    onclick="openFullStockDetails(${stock.id})">
-                                <span class="material-symbols-outlined bg-pink-50 text-[var(--primary-color)] p-2 rounded-full text-base">info</span>
+                        <div class="flex flex-wrap justify-around gap-2 text-xs font-semibold text-gray-600">
+                            <button class="flex flex-col items-center gap-1 hover:text-purple-500 transition" onclick="openStockDetails(${stock.id})">
+                                <span class="material-symbols-outlined bg-purple-50 text-purple-500 p-2 rounded-full text-base">info</span>
                                 ${trans.details}
                             </button>
-                            <button class="flex flex-col items-center gap-1 hover:text-green-600 transition openQuantityBtn"
-                                    onclick="openStockQuantity(${stock.id})">
+                            <button class="flex flex-col items-center gap-1 hover:text-green-500 transition" onclick="openStockQuantity(${stock.id}, ${quantity})">
                                 <span class="material-symbols-outlined bg-green-50 text-green-600 p-2 rounded-full text-base">add</span>
                                 ${trans.enter_quantity}
                             </button>
-                            <button class="flex flex-col items-center gap-1 hover:text-blue-500 transition"
-                                    onclick="window.location.href='/edit_stock/${stock.id}?page=' + (currentStockPage || 1)">
+                            <button class="flex flex-col items-center gap-1 hover:text-blue-500 transition" onclick="window.location.href='/edit_stock/${stock.id}?page=' + (currentStockPage || 1)">
                                 <span class="material-symbols-outlined bg-blue-50 text-blue-500 p-2 rounded-full text-base">edit</span>
                                 ${trans.edit}
                             </button>
-                            <button class="flex flex-col items-center gap-1 hover:text-red-500 transition delete-stock-btn-mobile"
-                                    data-stock-id="${stock.id}">
+                            <button class="flex flex-col items-center gap-1 hover:text-red-500 transition delete-stock-btn-mobile" data-stock-id="${stock.id}">
                                 <span class="material-symbols-outlined bg-red-50 text-red-500 p-2 rounded-full text-base">delete</span>
                                 ${trans.delete}
                             </button>
@@ -317,163 +253,53 @@
     });
 
 
-function stockDetails() {
-    return {
-        loading: false,
-        showDetails: false,
-        stock: null, // raw stock data
+function openStockDetails(stockId) {
+    const mainEl = document.querySelector('main[x-data]');
+    if (!mainEl || !mainEl._x_dataStack) return;
+    const alpine = mainEl._x_dataStack[0];
+    alpine.loading = true;
+    alpine.showDetails = true;
 
-        openStockDetails(id) {
-            this.loading = true;
-            this.showDetails = true;
-            this.stock = null;
-
-            $.ajax({
-                url: '{{ url("stock_detail") }}',
-                method: 'GET',
-                data: { id: id },
-                success: (response) => {
-                    if (response) {
-                        this.stock = response; // <-- directly use response
-
-                        $('#abaya_code').text(this.stock.abaya_code || '-');
-                        $('#design_name').text(this.stock.design_name || '-');
-                        $('#barcode').text(this.stock.barcode || '-');
-                        $('#description').text(this.stock.abaya_notes || '-');
-                        $('#size_container').html(this.stock.sizes_html || '-');
-                    $('#size_color_container').html(this.stock.size_color_html || '-');
-                                            $('#color_container').html(this.stock.color || '-');
-
-                        $('#status').text(this.stock.status || 'Available');
-
-                        $('#stock_main_image').attr('src', this.stock.image_path || '/images/placeholder.png');
-                    }
-                    this.loading = false;
-                },
-                error: (err) => {
-                    console.error('Error:', err);
-                    alert(trans.failed_to_load_details);
-                    this.loading = false;
-                    this.showDetails = false;
-                }
-            });
-        }
-    }
-}
-
-
-
-function openStockQuantity(stockId) {
-    // Get the Alpine.js component from the main element
-    const mainElement = document.querySelector('main[x-data]');
-    if (!mainElement) {
-        console.error('Main element with Alpine.js not found');
-        return;
-    }
-    
-    // Try multiple methods to access Alpine.js data
-    let alpineData = null;
-    try {
-        // Method 1: Direct access via _x_dataStack
-        if (mainElement._x_dataStack && mainElement._x_dataStack[0]) {
-            alpineData = mainElement._x_dataStack[0];
-        }
-        // Method 2: Use Alpine.$data if available
-        else if (window.Alpine && typeof window.Alpine.$data === 'function') {
-            alpineData = window.Alpine.$data(mainElement);
-        }
-        // Method 3: Try accessing via Alpine reactive
-        else if (window.Alpine && mainElement._x_dataStack) {
-            alpineData = mainElement._x_dataStack[0];
-        }
-    } catch (e) {
-        console.error('Error accessing Alpine.js data:', e);
-    }
-    
-    if (!alpineData) {
-        console.error('Could not access Alpine.js data');
-        return;
-    }
-    
-    // Set stock_id in the form before showing modal
-    $('#stock_id').val(stockId);
-    
-    // Reset form state
-    $('#save_qty')[0].reset();
-    $('#stock_id').val(stockId); // Set again after reset
-    $('#selected_tailor_id').val(''); // Reset tailor selection
-    if (alpineData) {
-        alpineData.actionType = 'add';
-    }
-    
-    // Re-enable submit button and restore original text
-    var submitBtn = $('#save_qty').find('button[type="submit"]');
-    submitBtn.prop('disabled', false);
-    submitBtn.html('<span class="material-symbols-outlined align-middle me-2 text-sm">check</span>{{ trans("messages.save_operation", [], session("locale")) }}');
-    
-    // Show the modal using Alpine.js
-    if (alpineData) {
-        alpineData.showQuantity = true;
-    }
-
-    // Fetch stock quantity data via AJAX
     $.ajax({
-        url: '{{ url("get_stock_quantity") }}',
+        url: '{{ url("get_simple_stock_detail") }}',
         method: 'GET',
         data: { id: stockId },
-        success: function(response) {
-            if (response) {
-                // Inject HTML into modal
-                $('#sizecont').html(response.sizes_html || '');
-                $('#colorsize_container').html(response.size_color_html || '');
-                $('#colorcont').html(response.color || '');
-                
-                // Update quantity inputs based on current mode (add by default)
-                setTimeout(function() {
-                    if (alpineData && typeof alpineData.updateQuantityInputs === 'function') {
-                        alpineData.updateQuantityInputs();
-                    }
-                }, 100);
-                
-                // Populate original tailor display
-                let originalTailorHtml = '';
-                if (response.original_tailors && response.original_tailors.length > 0) {
-                    response.original_tailors.forEach(function(tailor) {
-                        originalTailorHtml += `
-                            <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-semibold border border-blue-200">
-                                <span class="material-symbols-outlined text-base">person</span>
-                                ${tailor.name}
-                            </span>
-                        `;
-                    });
-                } else {
-                    originalTailorHtml = `
-                        <span class="text-sm text-gray-500 italic">
-                            {{ trans('messages.no_tailor_assigned', [], session('locale')) ?: 'No tailor assigned' }}
-                        </span>
-                    `;
-                }
-                $('#original_tailor_display').html(originalTailorHtml);
-                
-                // Populate tailor dropdown
-                let tailorSelect = $('#selected_tailor_id');
-                tailorSelect.find('option:not(:first)').remove(); // Clear existing options except first
-                
-                if (response.all_tailors && response.all_tailors.length > 0) {
-                    response.all_tailors.forEach(function(tailor) {
-                        tailorSelect.append(`<option value="${tailor.id}">${tailor.name}</option>`);
-                    });
-                } else {
-                    tailorSelect.append(`<option value="">{{ trans('messages.no_tailors_available', [], session('locale')) ?: 'No tailors available' }}</option>`);
-                }
-            }
+        success: function(res) {
+            $('#stock_detail_image').attr('src', res.image || '').parent().show();
+            if (!res.image) $('#detail_image_wrap').hide();
+            $('#detail_stock_name').text(res.stock_name || '-');
+            $('#detail_category').text(res.category_name || '-');
+            $('#detail_barcode').text(res.barcode || '-');
+            $('#detail_quantity').text(res.quantity ?? '-');
+            $('#detail_cost_price').text(res.cost_price != null ? parseFloat(res.cost_price).toFixed(3) + ' OMR' : '-');
+            $('#detail_sales_price').text(res.sales_price != null ? parseFloat(res.sales_price).toFixed(3) + ' OMR' : '-');
+            $('#detail_discount').text(res.discount != null ? parseFloat(res.discount).toFixed(3) : '-');
+            $('#detail_tax').text(res.tax != null ? parseFloat(res.tax).toFixed(3) : '-');
+            $('#detail_notification_limit').text(res.notification_limit != null && res.notification_limit !== '' ? res.notification_limit : '-');
+            $('#detail_notes').text(res.stock_notes || '-');
+            alpine.loading = false;
         },
-        error: function(err) {
-            console.error('Error:', err);
-            alert(trans.failed_to_load_details);
-            alpineData.showQuantity = false; // Close modal on error
+        error: function() {
+            show_notification('error', trans.failed_to_load_details);
+            alpine.loading = false;
+            alpine.showDetails = false;
         }
     });
+}
+
+function openStockQuantity(stockId, availableQty) {
+    const mainEl = document.querySelector('main[x-data]');
+    if (!mainEl || !mainEl._x_dataStack) return;
+    const alpine = mainEl._x_dataStack[0];
+    alpine.availableQuantity = parseFloat(availableQty) || 0;
+    alpine.actionType = 'add';
+    alpine.showQuantity = true;
+    $('#qty_stock_id').val(stockId);
+    $('#qty_available_display').text(alpine.availableQuantity);
+    $('#qty_amount').val('').removeAttr('max');
+    $('#pull_reason').val('');
+    $('#save_qty')[0].reset();
+    $('#qty_stock_id').val(stockId);
 }
 
 
@@ -536,171 +362,63 @@ function openStockQuantity(stockId) {
 
 $(document).ready(function() {
     $('#save_qty').on('submit', function(e) {
-        e.preventDefault(); // prevent default form submit
-        e.stopPropagation(); // prevent event bubbling
+        e.preventDefault();
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const actionType = $('input[name="qtyType"]:checked').val() || 'add';
+        const qty = parseFloat($('#qty_amount').val()) || 0;
+        const stockId = $('#qty_stock_id').val();
+        const pullReason = ($('#pull_reason').val() || '').trim();
 
-        var form = $(this);
-        var submitBtn = form.find('button[type="submit"]');
-        
-        // Get Alpine.js data
-        const mainElement = document.querySelector('main[x-data]');
-        if (!mainElement || !mainElement._x_dataStack || !mainElement._x_dataStack[0]) {
-            console.error('Alpine.js not initialized');
+        if (!stockId) {
+            show_notification('error', trans.error_occurred);
             return false;
         }
-        const alpineData = mainElement._x_dataStack[0];
-        
-        // Check for pull reason if action is pull
-        const actionType = alpineData.actionType || $('input[name="qtyType"]:checked').val();
-        const pullReason = $('#pull_reason').val() ? $('#pull_reason').val().trim() : '';
-        
-        if (actionType === 'pull' && pullReason === '') {
-            show_notification('error', '{{ trans("messages.please_enter_pull_notes", [], session("locale")) ?: "Please enter pull notes" }}');
+        if (qty <= 0) {
+            show_notification('error', '{{ trans("messages.please_enter_quantity", [], session("locale")) ?: "Please enter quantity" }}');
             return false;
         }
-        
-        // Validate tailor selection when adding quantity
-        if (actionType === 'add') {
-            const selectedTailor = $('#selected_tailor_id').val();
-            if (!selectedTailor || selectedTailor === '') {
-                show_notification('error', '{{ trans("messages.please_select_tailor", [], session("locale")) ?: "Please select a tailor for this quantity" }}');
-                $('#selected_tailor_id').focus();
-                return false;
-            }
-        }
-        
-        // Validate quantity inputs
-        let hasQuantity = false;
-        let validationError = null;
-        
-        // Check quantity inputs in all containers (using specific field names)
-        $('#colorsize_container input[name="size_color_qty[]"], #sizecont input[name="size_qty[]"], #colorcont input[name="color_qty[]"]').each(function() {
-            const $input = $(this);
-            const value = parseFloat($input.val());
-            
-            // Check if value is not empty and not NaN (allow 0 and negative values)
-            if (!isNaN(value) && $input.val() !== '') {
-                hasQuantity = true;
-                
-                // If pulling, check if quantity doesn't exceed available
-                if (actionType === 'pull') {
-                    const availableQty = parseFloat($input.data('available-qty')) || 0;
-                    if (value > availableQty) {
-                        validationError = '{{ trans("messages.pull_quantity_exceeds_available", [], session("locale")) ?: "Pull quantity cannot exceed available quantity" }}. ' + 
-                                         '{{ trans("messages.available", [], session("locale")) ?: "Available" }}: ' + availableQty;
-                        return false; // break the loop
-                    }
-                    // For pull mode: also ensure value is positive (can't pull negative)
-                    if (value <= 0) {
-                        validationError = '{{ trans("messages.pull_quantity_must_be_positive", [], session("locale")) ?: "Pull quantity must be greater than 0" }}';
-                        return false;
-                    }
-                }
-                // For add mode: no restrictions on quantity value (can be negative, any value)
-            }
-        });
-        
-        if (validationError) {
-            show_notification('error', validationError);
+        if (actionType === 'pull' && !pullReason) {
+            show_notification('error', '{{ trans("messages.please_enter_pull_notes", [], session("locale")) ?: "Pull reason is required" }}');
             return false;
         }
-        
-        if (!hasQuantity) {
-            show_notification('error', '{{ trans("messages.please_enter_quantity", [], session("locale")) ?: "Please enter at least one quantity" }}');
+
+        const mainEl = document.querySelector('main[x-data]');
+        const availableQty = mainEl && mainEl._x_dataStack ? (mainEl._x_dataStack[0].availableQuantity || 0) : 0;
+        if (actionType === 'pull' && qty > availableQty) {
+            show_notification('error', '{{ trans("messages.pull_quantity_exceeds_available", [], session("locale")) ?: "Pull quantity cannot exceed available" }}. {{ trans("messages.available", [], session("locale")) }}: ' + availableQty);
             return false;
         }
-        
-        // Disable submit button to prevent double submission
+
         submitBtn.prop('disabled', true).html('<span class="material-symbols-outlined align-middle me-2 text-sm animate-spin">hourglass_empty</span>' + trans.saving);
-        
-        var formData = form.serialize(); // serialize form fields
-        formData += '&stock_id=' + $('#stock_id').val();
-        formData += '&actionType=' + actionType; // include add/pull
-        
-        // Explicitly add selected_tailor_id for additions
-        if (actionType === 'add') {
-            const selectedTailorId = $('#selected_tailor_id').val();
-            if (selectedTailorId) {
-                formData += '&selected_tailor_id=' + encodeURIComponent(selectedTailorId);
-            }
-        }
+
+        const url = actionType === 'pull' ? '{{ url("stock_pull_quantity") }}' : '{{ url("stock_push_quantity") }}';
+        const data = {
+            _token: '{{ csrf_token() }}',
+            stock_id: stockId,
+            quantity: qty
+        };
+        if (actionType === 'pull') data.pull_reason = pullReason;
 
         $.ajax({
-            url: "{{ route('add_quantity') }}", // your Laravel route
-            type: 'POST',
-            data: formData,
-         
-            success: function(response) {
-              if (response.status === "success") {
-    // Re-enable submit button before closing modal
-    submitBtn.prop('disabled', false).html('<span class="material-symbols-outlined align-middle me-2 text-sm">check</span>{{ trans("messages.save_operation", [], session("locale")) }}');
-    
-    Swal.fire({
-        icon: 'success',
-        title: trans.success_title,
-        text: response.message,
-        timer: 2000,
-        showConfirmButton: false
-    });
-
-    // Reload stock list with current page
-    if (typeof loadStock === 'function') {
-        // Reload the current page to show updated quantities
-        loadStock(currentStockPage);
-    } else {
-        // Fallback: reload the page
-        location.reload();
-    }
-
-    // Close modal using Alpine.js
-    setTimeout(() => {
-        alpineData.showQuantity = false;
-    }, 500);
-
-} else {
-
-    Swal.fire({
-        icon: 'error',
-        title: trans.error_title,
-        text: response.message || trans.error_occurred
-    });
-
-    submitBtn.prop('disabled', false).html('<span class="material-symbols-outlined align-middle me-2 text-sm">check</span>{{ trans("messages.save_operation", [], session("locale")) }}');
-}
-
-            },
-            error: function(xhr, status, error) {
-                console.error('Error:', error);
-                console.error('Response:', xhr.responseText);
-                
-                var errorMsg = trans.error_saving || '{{ trans("messages.error_saving", [], session("locale")) ?: "Error saving" }}';
-                
-                // Check if response has JSON with message
-                if(xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMsg = xhr.responseJSON.message;
-                } else if (xhr.responseText) {
-                    try {
-                        const jsonResponse = JSON.parse(xhr.responseText);
-                        if (jsonResponse.message) {
-                            errorMsg = jsonResponse.message;
-                        }
-                    } catch (e) {
-                        // Not JSON, use default error message
-                    }
+            url: url,
+            method: 'POST',
+            data: data,
+            success: function(res) {
+                if (res.status === 'success') {
+                    show_notification('success', res.message);
+                    mainEl._x_dataStack[0].showQuantity = false;
+                    loadStock(currentStockPage);
                 }
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: trans.error_title || '{{ trans("messages.error", [], session("locale")) }}',
-                    text: errorMsg
-                });
-                
-                // Re-enable submit button
+                submitBtn.prop('disabled', false).html('<span class="material-symbols-outlined align-middle me-2 text-sm">check</span>{{ trans("messages.save_operation", [], session("locale")) }}');
+            },
+            error: function(xhr) {
+                const msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : trans.error_saving;
+                show_notification('error', msg);
                 submitBtn.prop('disabled', false).html('<span class="material-symbols-outlined align-middle me-2 text-sm">check</span>{{ trans("messages.save_operation", [], session("locale")) }}');
             }
         });
-        
-        return false; // Additional prevention
+        return false;
     });
 });
 $.ajaxSetup({
@@ -743,8 +461,8 @@ function openFullStockDetails(stockId) {
     }
 
     // Clear previous data
-    $('#full_modal_abaya_code').text('...');
-    $('#full_abaya_code').text('-');
+    $('#full_modal_stock_code').text('...');
+    $('#full_stock_code').text('-');
     $('#full_design_name').text('-');
     $('#full_barcode').text('-');
     $('#full_description').text('-');
@@ -770,11 +488,11 @@ function openFullStockDetails(stockId) {
         success: function(response) {
             if (response) {
                 // Populate basic info
-                $('#full_abaya_code').text(response.abaya_code || '-');
-                $('#full_modal_abaya_code').text(response.abaya_code || '...');
+                $('#full_stock_code').text(response.stock_code || '-');
+                $('#full_modal_stock_code').text(response.stock_code || '...');
                 $('#full_design_name').text(response.design_name || '-');
                 $('#full_barcode').text(response.barcode || '-');
-                $('#full_description').text(response.abaya_notes || '-');
+                $('#full_description').text(response.stock_notes || '-');
 
                 // Pricing info
                 const costPrice = response.cost_price ? parseFloat(response.cost_price).toFixed(2) : '0.00';
@@ -803,7 +521,7 @@ function openFullStockDetails(stockId) {
                                 <div class="relative" style="height: 200px; overflow: hidden;">
                                     <img src="${imagePath}" 
                                          class="w-full h-full object-cover" 
-                                         alt="${trans.abaya_image} ${index + 1}"
+                                         alt="${trans.stock_image} ${index + 1}"
                                          onerror="this.src='/images/placeholder.png'">
                                 </div>
                             </div>

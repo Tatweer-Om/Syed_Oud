@@ -83,7 +83,7 @@
 
     <!-- Stock & Material (Inventory) -->
     @php
-        $inventoryMenuActive = strpos($currentPath, 'view_stock') === 0 || strpos($currentPath, 'stock') === 0 || strpos($currentPath, 'view_material') === 0 || strpos($currentPath, 'material') === 0 || strpos($currentPath, 'categories') === 0 || strpos($currentPath, 'abaya-materials') === 0 || strpos($currentPath, 'stock/comprehensive-audit') === 0 || strpos($currentPath, 'material-quantity-audit') === 0;
+        $inventoryMenuActive = strpos($currentPath, 'view_stock') === 0 || strpos($currentPath, 'stock') === 0 || strpos($currentPath, 'purchase') === 0 || strpos($currentPath, 'view_purchase') === 0 || strpos($currentPath, 'view_material') === 0 || strpos($currentPath, 'view_units') === 0 || strpos($currentPath, 'material') === 0 || strpos($currentPath, 'categories') === 0 || strpos($currentPath, 'stock-materials') === 0 || strpos($currentPath, 'stock/comprehensive-audit') === 0 || strpos($currentPath, 'material-quantity-audit') === 0;
     @endphp
     <div>
         <button onclick="toggleSubmenu('inventoryMenu')" 
@@ -98,6 +98,14 @@
             <a href="{{url('view_stock')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'view_stock' || (strpos(request()->path(), 'stock') === 0 && trim(request()->path(), '/') !== 'stock/audit' && trim(request()->path(), '/') !== 'stock')) ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
                 <span class="material-symbols-outlined text-sm">chevron_right</span> 
                 {{ trans('messages.inventory', [], session('locale')) }}
+            </a>
+            <a href="{{url('purchase')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'purchase') ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+                <span class="material-symbols-outlined text-sm">chevron_right</span> 
+                {{ trans('messages.purchase', [], session('locale')) }}
+            </a>
+            <a href="{{url('view_purchase')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'view_purchase') ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+                <span class="material-symbols-outlined text-sm">chevron_right</span> 
+                {{ trans('messages.view_purchase', [], session('locale')) }}
             </a>
             <a href="{{route('stock.comprehensive_audit')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'stock/comprehensive-audit' || strpos(request()->path(), 'stock/comprehensive-audit') === 0) ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
                 <span class="material-symbols-outlined text-sm">chevron_right</span> 
@@ -115,6 +123,10 @@
             <a href="{{url('view_material')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'view_material' || trim(request()->path(), '/') === 'add_material' || strpos(request()->path(), 'edit_material') === 0) ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
                 <span class="material-symbols-outlined text-sm">chevron_right</span> 
                 {{ trans('messages.add_material', [], session('locale')) }}
+            </a>
+            <a href="{{url('view_units')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'view_units') ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+                <span class="material-symbols-outlined text-sm">chevron_right</span> 
+                {{ trans('messages.manage_units', [], session('locale')) }}
             </a>
         </div>
     </div>

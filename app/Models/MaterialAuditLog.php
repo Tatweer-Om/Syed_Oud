@@ -10,7 +10,7 @@ class MaterialAuditLog extends Model
 
     protected $fillable = [
         'stock_id',
-        'abaya_code',
+        'stock_code',
         'barcode',
         'design_name',
         'operation_type',

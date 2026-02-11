@@ -10,7 +10,7 @@ class TransferItem extends Model
     protected $fillable = [
         'transfer_id',
         'stock_id',
-        'abaya_code',
+        'stock_code',
         'item_type',
         'color_id',
         'size_id',

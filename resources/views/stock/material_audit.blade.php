@@ -20,7 +20,7 @@
                 <input
                     id="search_material_audit"
                     type="text"
-                    placeholder="{{ trans('messages.search_abaya', [], session('locale')) ?: 'Search by abaya code, name, or barcode' }}"
+                    placeholder="{{ trans('messages.search_stock', [], session('locale')) ?: 'Search by stock code, name, or barcode' }}"
                     class="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-[var(--text-primary)] placeholder-gray-400 text-sm px-3" />
                 <button
                     id="search_btn"

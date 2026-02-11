@@ -55,12 +55,12 @@ function get_sms($params)
     $pos_order_no = "";
     $special_order_no = "";
     $customer_phone_number = "";
-    $abaya_name = "";
-    $abaya_code = "";
-    $abaya_category = "";
+    $stock_name = "";
+    $stock_code = "";
+    $stock_category = "";
     $color = "";
     $size = "";
-    $abaya_length = "";
+    $stock_length = "";
     $bust = "";
     $sleeves_length = "";
     $buttons = "";
@@ -127,19 +127,19 @@ function get_sms($params)
                 if ($firstDetail) {
                     $stock = $firstDetail->stock;
                     if ($stock) {
-                        $abaya_name = $stock->design_name ?? $stock->abaya_code ?? '';
-                        $abaya_code = $stock->abaya_code ?? '';
+                        $stock_name = $stock->design_name ?? $stock->stock_code ?? '';
+                        $stock_code = $stock->stock_code ?? '';
 
                         // Get category name based on locale
                         $locale = session('locale', 'en');
                         if ($stock->category) {
                             if ($locale === 'ar') {
-                                $abaya_category = $stock->category->category_name_ar ?? $stock->category->category_name ?? '';
+                                $stock_category = $stock->category->category_name_ar ?? $stock->category->category_name ?? '';
                             } else {
-                                $abaya_category = $stock->category->category_name ?? $stock->category->category_name_ar ?? '';
+                                $stock_category = $stock->category->category_name ?? $stock->category->category_name_ar ?? '';
                             }
                         } else {
-                            $abaya_category = '';
+                            $stock_category = '';
                         }
                     }
 
@@ -168,9 +168,9 @@ function get_sms($params)
                     // Calculate total quantity from all order details
                     $quantity = $order->details->sum('item_quantity') ?? 1;
                 } else {
-                    $abaya_name = '';
-                    $abaya_code = '';
-                    $abaya_category = '';
+                    $stock_name = '';
+                    $stock_code = '';
+                    $stock_category = '';
                     $color = '';
                     $size = '';
                     $quantity = 1;
@@ -228,32 +228,32 @@ function get_sms($params)
                 if ($firstItem) {
                     $stock = $firstItem->stock;
                     if ($stock) {
-                        $abaya_name = $firstItem->design_name ?? $stock->design_name ?? $stock->abaya_code ?? '';
-                        $abaya_code = $firstItem->abaya_code ?? $stock->abaya_code ?? '';
+                        $stock_name = $firstItem->design_name ?? $stock->design_name ?? $stock->stock_code ?? '';
+                        $stock_code = $firstItem->stock_code ?? $stock->stock_code ?? '';
 
                         // Get category name based on locale
                         $locale = session('locale', 'en');
                         if ($stock->category) {
                             if ($locale === 'ar') {
-                                $abaya_category = $stock->category->category_name_ar ?? $stock->category->category_name ?? '';
+                                $stock_category = $stock->category->category_name_ar ?? $stock->category->category_name ?? '';
                             } else {
-                                $abaya_category = $stock->category->category_name ?? $stock->category->category_name_ar ?? '';
+                                $stock_category = $stock->category->category_name ?? $stock->category->category_name_ar ?? '';
                             }
                         } else {
-                            $abaya_category = '';
+                            $stock_category = '';
                         }
                     } else {
-                        $abaya_name = $firstItem->design_name ?? $firstItem->abaya_code ?? '';
-                        $abaya_code = $firstItem->abaya_code ?? '';
-                        $abaya_category = '';
+                        $stock_name = $firstItem->design_name ?? $firstItem->stock_code ?? '';
+                        $stock_code = $firstItem->stock_code ?? '';
+                        $stock_category = '';
                     }
 
-                    // Get abaya measurements (check if value exists and is numeric, including 0)
-                    $abayaLengthValue = $firstItem->abaya_length;
-                    if ($abayaLengthValue !== null && $abayaLengthValue !== '' && is_numeric($abayaLengthValue)) {
-                        $abaya_length = number_format((float)$abayaLengthValue, 2);
+                    // Get stock measurements (check if value exists and is numeric, including 0)
+                    $stockLengthValue = $firstItem->stock_length;
+                    if ($stockLengthValue !== null && $stockLengthValue !== '' && is_numeric($stockLengthValue)) {
+                        $stock_length = number_format((float)$stockLengthValue, 2);
                     } else {
-                        $abaya_length = '';
+                        $stock_length = '';
                     }
 
                     $bustValue = $firstItem->bust;
@@ -284,14 +284,14 @@ function get_sms($params)
                     // Calculate total quantity from all items
                     $quantity = $specialOrder->items->sum('quantity') ?? 1;
 
-                    // Note: Special orders use custom measurements (abaya_length, bust, sleeves_length)
+                    // Note: Special orders use custom measurements (stock_length, bust, sleeves_length)
                     // instead of standard sizes, so $size remains empty for special orders
                     $size = '';
                 } else {
-                    $abaya_name = '';
-                    $abaya_code = '';
-                    $abaya_category = '';
-                    $abaya_length = '';
+                    $stock_name = '';
+                    $stock_code = '';
+                    $stock_category = '';
+                    $stock_length = '';
                     $bust = '';
                     $sleeves_length = '';
                     $buttons = '';
@@ -319,12 +319,12 @@ function get_sms($params)
         'pos_order_no'         => $pos_order_no,
         'special_order_no'     => $special_order_no,
         'customer_phone_number' => $customer_phone_number,
-        'abaya_name'           => $abaya_name,
-        'abaya_code'           => $abaya_code,
-        'abaya_category'       => $abaya_category,
+        'stock_name'           => $stock_name,
+        'stock_code'           => $stock_code,
+        'stock_category'       => $stock_category,
         'color'                => $color,
         'size'                 => $size,
-        'abaya_length'         => $abaya_length,
+        'stock_length'         => $stock_length,
         'bust'                 => $bust,
         'sleeves_length'       => $sleeves_length,
         'buttons'              => $buttons,
@@ -430,7 +430,7 @@ function syncPendingStocksToWebsite()
 
         $stockData = [
             'id' => $stock->id,
-            'abaya_code' => $stock->abaya_code ?? '',
+            'stock_code' => $stock->stock_code ?? '',
             'barcode' => $stock->barcode ?? '',
             'design_name' => $stock->design_name ?? '',
             'sales_price' => (float) ($stock->sales_price ?? 0),
@@ -547,7 +547,7 @@ function syncPendingStocksToWebsite()
 //         // Minimal & valid payload
 //         $itemPayload = [
 //             'stock_id'   => (int) $item->stock_id,
-//             'abaya_code' => $item->abaya_code ?? '',
+//             'stock_code' => $item->stock_code ?? '',
 //             'quantity'   => (int) $item->quantity,
 //             'color_id'   => (int) ($item->color_id ?? 0),
 //             'size_id'    => (int) ($item->size_id ?? 0),
@@ -693,7 +693,7 @@ function syncAllTransferItemsToWebsiteReceiveQty(string $targetToLocation = 'cha
 
 /**
  * Fetch website current qty from external API.
- * Loops channel_stocks, gets stock_id, size_id, color_id, abaya_code, barcode (from Stock), sends to website_current_qty API.
+ * Loops channel_stocks, gets stock_id, size_id, color_id, stock_code, barcode (from Stock), sends to website_current_qty API.
  * Same HTTP style as add_stock_website / receive_stock_qty.
  *
  * @return array ['success' => bool, 'http_status' => int, 'response' => array|string, 'items_sent' => int]

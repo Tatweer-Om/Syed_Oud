@@ -13,7 +13,7 @@ class TailorPaymentItem extends Model
         'stock_id',
         'special_order_item_id',
         'stock_history_id',
-        'abaya_code',
+        'stock_code',
         'quantity',
         'unit_charge',
         'total_charge',

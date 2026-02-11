@@ -16,6 +16,7 @@ use App\Http\Controllers\SizeController;
 use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\PurchaseController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -102,6 +103,7 @@ Route::get('expense-categories/{expenseCategory}', [ExpenseCategoryController::c
 // Supplier
 Route::get('suppliers', [SupplierController::class, 'index'])->name('supplier');
 Route::get('suppliers/list', [SupplierController::class, 'getSuppliers']);
+Route::get('suppliers/all', [SupplierController::class, 'getAllSuppliers']);
 Route::get('suppliers/count', [SupplierController::class, 'getTotalCount']);
 Route::post('suppliers', [SupplierController::class, 'store']);
 Route::put('suppliers/{supplier}', [SupplierController::class, 'update']);
@@ -136,6 +138,7 @@ Route::get('add_material', function () { return redirect()->route('view_material
 Route::post('add_material', [MaterialController::class, 'add_material'])->name('add_material');
 Route::get('material/list', [MaterialController::class, 'getmaterial']);
 Route::get('materials/all', [MaterialController::class, 'getAllMaterials'])->name('materials.all');
+Route::get('materials/for-purchase', [MaterialController::class, 'getMaterialsForPurchase']);
 Route::get('materials/{id}', [MaterialController::class, 'getMaterial33'])->where('id', '[0-9]+')->name('materials.get');
 Route::get('edit_material/{id}', [MaterialController::class, 'edit_material'])->name('edit_material');
 Route::post('update_material', [MaterialController::class, 'update_material'])->name('update_material');
@@ -147,6 +150,16 @@ Route::get('material-quantity-audit/data', [MaterialController::class, 'getMater
 
 // Stock
 Route::get('stock', [StockController::class, 'index'])->name('stock');
+Route::get('purchase', [PurchaseController::class, 'index'])->name('purchase');
+Route::get('view_purchase', [PurchaseController::class, 'view_purchase'])->name('view_purchase');
+Route::post('purchase/draft', [PurchaseController::class, 'storeDraft'])->name('purchase.draft.store');
+Route::get('purchase/drafts', [PurchaseController::class, 'getPurchaseDrafts']);
+Route::get('purchase/draft/{id}', [PurchaseController::class, 'getDraft'])->where('id', '[0-9]+');
+Route::get('purchase/{id}', [PurchaseController::class, 'getPurchase'])->where('id', '[0-9]+'); // completed purchase (view materials)
+Route::put('purchase/draft/{id}', [PurchaseController::class, 'updateDraft'])->where('id', '[0-9]+');
+Route::post('purchase/draft/{id}/complete', [PurchaseController::class, 'completeDraft'])->name('purchase.draft.complete')->where('id', '[0-9]+');
+Route::delete('purchase/draft/{id}', [PurchaseController::class, 'deleteDraft'])->where('id', '[0-9]+');
+Route::get('purchase/draft/{id}/edit', [PurchaseController::class, 'editDraft'])->name('purchase.draft.edit')->where('id', '[0-9]+');
 Route::post('add_stock', [StockController::class, 'add_stock'])->name('add_stock');
 Route::get('view_stock', [StockController::class, 'view_stock'])->name('view_stock');
 Route::post('update_stock', [StockController::class, 'update_stock'])->name('update_stock');
@@ -166,9 +179,12 @@ Route::delete('/stock/image/{id}', [StockController::class, 'deleteImage'])->nam
 Route::get('/fetch_stock/{id}', [StockController::class, 'fetch_stock']);
 Route::delete('stock/{id}', [StockController::class, 'destroy'])->name('stock.destroy');
 Route::get('stock_detail', [StockController::class, 'stock_detail'])->name('stock_detail');
+Route::get('get_simple_stock_detail', [StockController::class, 'get_simple_stock_detail'])->name('get_simple_stock_detail');
+Route::post('stock_push_quantity', [StockController::class, 'stock_push_quantity'])->name('stock_push_quantity');
+Route::post('stock_pull_quantity', [StockController::class, 'stock_pull_quantity'])->name('stock_pull_quantity');
 Route::get('get_stock_quantity', [StockController::class, 'get_stock_quantity'])->name('get_stock_quantity');
 Route::get('get_full_stock_details', [StockController::class, 'get_full_stock_details'])->name('get_full_stock_details');
 Route::post('add_quantity', [StockController::class, 'add_quantity'])->name('add_quantity');
-Route::get('abaya-materials', [StockController::class, 'abayaMaterials'])->name('abaya_materials');
-Route::get('abaya-materials/data', [StockController::class, 'getAbayaMaterials'])->name('abaya_materials.data');
+Route::get('stock-materials', [StockController::class, 'stockMaterials'])->name('stock_materials');
+Route::get('stock-materials/data', [StockController::class, 'getstockMaterials'])->name('stock_materials.data');
 Route::get('move_stock_to_system', [StockController::class, 'move_stock_to_system'])->name('move_stock_to_system');

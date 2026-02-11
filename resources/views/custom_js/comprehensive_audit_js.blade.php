@@ -70,7 +70,7 @@ $(document).ready(function() {
                         <tr class="hover:bg-gray-50 border-b">
                             <td class="px-4 py-3 border text-right text-xs">${item.date}</td>
                             <td class="px-4 py-3 border text-right text-xs">${item.time}</td>
-                            <td class="px-4 py-3 border text-right text-xs font-medium">${item.abaya_code}</td>
+                            <td class="px-4 py-3 border text-right text-xs font-medium">${item.stock_code}</td>
                             <td class="px-4 py-3 border text-right text-xs">${item.barcode}</td>
                             <td class="px-4 py-3 border text-right text-xs">${item.size || '—'}</td>
                             <td class="px-4 py-3 border text-right text-xs">${item.design_name}</td>

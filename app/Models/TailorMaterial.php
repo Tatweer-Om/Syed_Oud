@@ -12,9 +12,9 @@ class TailorMaterial extends Model
     protected $fillable = [
         'tailor_id',
         'material_id',
-        'abaya_id',
+        'stock_id',
         'quantity',
-        'abayas_expected',
+        'stocks_expected',
         'status',
         'sent_date',
         'completed_date',
@@ -24,7 +24,7 @@ class TailorMaterial extends Model
 
     protected $casts = [
         'quantity' => 'decimal:2',
-        'abayas_expected' => 'integer',
+        'stocks_expected' => 'integer',
         'sent_date' => 'date',
         'completed_date' => 'date',
     ];
@@ -46,11 +46,11 @@ class TailorMaterial extends Model
     }
 
     /**
-     * Get the abaya/stock associated with this material
+     * Get the stock/stock associated with this material
      */
-    public function abaya(): BelongsTo
+    public function stock(): BelongsTo
     {
-        return $this->belongsTo(Stock::class, 'abaya_id');
+        return $this->belongsTo(Stock::class, 'stock_id');
     }
 }
 

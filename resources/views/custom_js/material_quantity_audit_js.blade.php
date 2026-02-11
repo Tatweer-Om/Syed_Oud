@@ -8,7 +8,7 @@
             const dateFrom = $('#date_from').val();
             const dateTo = $('#date_to').val();
 
-            $('#auditTableBody').html('<tr><td colspan="13" class="px-2 py-4 text-xs text-center text-gray-500 border border-gray-300">{{ trans('messages.loading', [], session('locale')) }}...</td></tr>');
+            $('#auditTableBody').html('<tr><td colspan="8" class="px-2 py-4 text-xs text-center text-gray-500 border border-gray-300">{{ trans('messages.loading', [], session('locale')) }}...</td></tr>');
 
             $.get("{{ url('material-quantity-audit/data') }}", {
                 page: page,
@@ -17,7 +17,7 @@
                 date_to: dateTo
             }, function(res) {
                 if (!res.success) {
-                    $('#auditTableBody').html('<tr><td colspan="13" class="px-4 sm:px-6 py-8 text-center text-red-500">Error loading audit data</td></tr>');
+                    $('#auditTableBody').html('<tr><td colspan="8" class="px-4 sm:px-6 py-8 text-center text-red-500">Error loading audit data</td></tr>');
                     return;
                 }
 
@@ -52,6 +52,8 @@
                             sourceBadge = '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-600">' + sourceText + '</span>';
                         } else if (item.source === 'manage_quantity') {
                             sourceBadge = '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-cyan-50 text-cyan-600">' + (item.source_label || item.source) + '</span>';
+                        } else if (item.source === 'purchase') {
+                            sourceBadge = '<span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-green-50 text-green-600">' + (item.source_label || item.source) + '</span>';
                         } else {
                             sourceBadge = '<span class="text-xs text-gray-500">' + (item.source_label || item.source || '-') + '</span>';
                         }
@@ -60,7 +62,6 @@
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-2 py-2 text-xs text-[var(--text-primary)] border border-gray-300">${item.date || '-'}</td>
                             <td class="px-2 py-2 text-xs text-[var(--text-primary)] font-medium border border-gray-300">${item.material_name || '-'}</td>
-                            <td class="px-2 py-2 text-xs text-[var(--text-primary)] border border-gray-300">${item.abaya_code || '-'}</td>
                             <td class="px-2 py-2 text-xs text-center border border-gray-300">${sourceBadge}</td>
                             <td class="px-2 py-2 text-xs text-center border border-gray-300">${operationBadge}</td>
                             <td class="px-2 py-2 text-xs text-[var(--text-primary)] border border-gray-300">${item.previous_quantity || '0.00'}</td>
@@ -71,21 +72,12 @@
                                 </div>
                             </td>
                             <td class="px-2 py-2 text-xs text-[var(--text-primary)] font-semibold text-primary border border-gray-300">${item.remaining_quantity || '0.00'}</td>
-                            <td class="px-2 py-2 text-xs text-[var(--text-primary)] ${item.previous_tailor_material_quantity > 0 ? 'font-medium text-orange-600' : 'text-gray-500'} border border-gray-300">${item.previous_tailor_material_quantity || '0.00'}</td>
-                            <td class="px-2 py-2 text-xs text-[var(--text-primary)] font-medium ${parseFloat(item.tailor_material_change || 0) >= 0 ? 'text-green-600' : 'text-red-600'} border border-gray-300">
-                                <div class="flex items-center justify-center gap-1">
-                                    <span class="material-symbols-outlined" style="font-size: 14px;">${parseFloat(item.tailor_material_change || 0) >= 0 ? 'arrow_upward' : 'arrow_downward'}</span>
-                                    ${item.tailor_material_change || '0.00'}
-                                </div>
-                            </td>
-                            <td class="px-2 py-2 text-xs text-[var(--text-primary)] ${item.new_tailor_material_quantity > 0 ? 'font-medium text-orange-600' : 'text-gray-500'} border border-gray-300">${item.new_tailor_material_quantity || '0.00'}</td>
-                            <td class="px-2 py-2 text-xs text-[var(--text-primary)] border border-gray-300">${item.tailor_name || '-'}</td>
                             <td class="px-2 py-2 text-xs text-[var(--text-primary)] border border-gray-300">${item.added_by || '-'}</td>
                         </tr>
                         `;
                     });
                 } else {
-                    rows = '<tr><td colspan="13" class="px-2 py-4 text-xs text-center text-gray-500 border border-gray-300">{{ trans('messages.no_data', [], session('locale')) ?: 'No data found' }}</td></tr>';
+                    rows = '<tr><td colspan="8" class="px-2 py-4 text-xs text-center text-gray-500 border border-gray-300">{{ trans('messages.no_data', [], session('locale')) ?: 'No data found' }}</td></tr>';
                 }
                 $('#auditTableBody').html(rows);
 
@@ -181,7 +173,7 @@
                 }
                 $('#pagination').html(pagination);
             }).fail(function() {
-                $('#auditTableBody').html('<tr><td colspan="13" class="px-2 py-4 text-xs text-center text-red-500 border border-gray-300">Error loading audit data</td></tr>');
+                $('#auditTableBody').html('<tr><td colspan="8" class="px-2 py-4 text-xs text-center text-red-500 border border-gray-300">Error loading audit data</td></tr>');
             });
         }
 

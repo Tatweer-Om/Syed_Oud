@@ -13,7 +13,6 @@
 <main class="flex-1 p-4 md:p-6">
   <div class="max-w-7xl mx-auto">
     
-    <!-- Header with back button -->
     <div class="flex items-center justify-between mb-6">
       <div class="flex items-center gap-4">
         <a href="{{ url('view_stock') }}" 
@@ -26,14 +25,11 @@
       </div>
     </div>
 
-    <!-- Single compact form card -->
-    <form id="abaya_form" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <form id="stock_form" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
       @csrf
       
-      <!-- Form Content -->
       <div class="p-6 sm:p-8 space-y-6">
         
-        <!-- Basic Information Section -->
         <div class="space-y-4">
           <div class="flex items-center gap-2 pb-3 border-b border-gray-200">
             <span class="material-symbols-outlined text-primary text-xl">info</span>
@@ -41,27 +37,15 @@
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4" x-data="{ barcode: '' }">
-            <!-- Abaya Code -->
             <label class="flex flex-col">
-              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.abaya_code', [], session('locale')) }}</span>
+              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.stock_name', [], session('locale')) ?: 'Stock Name' }}</span>
               <input type="text" 
-                     name="abaya_code" 
-                     id="abaya_code"
-                     placeholder="{{ trans('messages.abaya_code_placeholder', [], session('locale')) }}"
+                     name="stock_name" 
+                     id="stock_name"
+                     placeholder="{{ trans('messages.stock_name_placeholder', [], session('locale')) ?: 'Enter stock name' }}"
                      class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
             </label>
 
-            <!-- Design Name -->
-            <label class="flex flex-col">
-              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.design_name', [], session('locale')) }}</span>
-              <input type="text" 
-                     name="design_name" 
-                     id="design_name"
-                     placeholder="{{ trans('messages.design_name_placeholder', [], session('locale')) }}"
-                     class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
-            </label>
-
-            <!-- Category -->
             <label class="flex flex-col">
               <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.category', [], session('locale')) }}</span>
               <select class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" 
@@ -74,567 +58,110 @@
               </select>
             </label>
 
-            <!-- Barcode and Images in One Row -->
-            <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <!-- Generate Barcode -->
-              <label class="flex flex-col">
-                <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.generate_barcode', [], session('locale')) }}</span>
-                <div class="flex flex-col gap-2" x-data="{ generating: false, generated: false }">
-                  <input type="text" 
-                         name="barcode" 
-                         id="barcode"
-                         x-model="barcode"
-                         placeholder="{{ trans('messages.barcode_placeholder', [], session('locale')) }}"
-                         class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 transition-all"
-                         :class="generated ? 'border-green-500 bg-green-50' : ''"
-                         readonly />
-                  <button type="button"
-                          @click="
-                            generating = true;
-                            setTimeout(() => {
-                              barcode = Math.floor(100000000000 + Math.random() * 900000000000);
-                              generating = false;
-                              generated = true;
-                              setTimeout(() => generated = false, 2000);
-                            }, 500);
-                          "
-                          :disabled="generating"
-                          class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed text-sm">
-                    <span class="material-symbols-outlined transition-transform duration-300 text-sm" 
-                          :class="generating ? 'animate-spin' : ''"
-                          x-text="generating ? 'hourglass_empty' : (generated ? 'check_circle' : 'qr_code_2')"></span>
-                    <span class="text-xs" x-text="generating ? '{{ trans('messages.processing', [], session('locale')) }}' : (generated ? '{{ trans('messages.barcode_generated', [], session('locale')) }}' : '{{ trans('messages.generate', [], session('locale')) }}')"></span>
+            <label class="flex flex-col">
+              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.generate_barcode', [], session('locale')) }}</span>
+              <div class="flex flex-col gap-2" x-data="{ generating: false, generated: false }">
+                <input type="text" 
+                       name="barcode" 
+                       id="barcode"
+                       x-model="barcode"
+                       placeholder="{{ trans('messages.barcode_placeholder', [], session('locale')) }}"
+                       class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 transition-all"
+                       :class="generated ? 'border-green-500 bg-green-50' : ''" />
+                <button type="button"
+                        @click="
+                          generating = true;
+                          setTimeout(() => {
+                            barcode = Math.floor(100000000000 + Math.random() * 900000000000);
+                            generating = false;
+                            generated = true;
+                            setTimeout(() => generated = false, 2000);
+                          }, 500);
+                        "
+                        :disabled="generating"
+                        class="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed text-sm">
+                  <span class="material-symbols-outlined transition-transform duration-300 text-sm" 
+                        :class="generating ? 'animate-spin' : ''"
+                        x-text="generating ? 'hourglass_empty' : (generated ? 'check_circle' : 'qr_code_2')"></span>
+                  <span class="text-xs" x-text="generating ? '{{ trans('messages.processing', [], session('locale')) }}' : (generated ? '{{ trans('messages.barcode_generated', [], session('locale')) }}' : '{{ trans('messages.generate', [], session('locale')) }}')"></span>
+                </button>
+              </div>
+            </label>
+
+            <label class="flex flex-col md:col-span-3">
+              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.image', [], session('locale')) ?: 'Stock Image' }}</span>
+              <input type="file" name="image" id="image" accept="image/*"
+                     class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 w-full" />
+              <div id="image_preview" class="mt-2 hidden relative inline-block">
+                <div class="relative group">
+                  <img id="image_preview_img" src="" alt="Preview" class="w-32 h-32 object-cover rounded-xl border-2 border-gray-200 shadow-sm" />
+                  <button type="button" id="image_remove_btn" title="{{ trans('messages.remove', [], session('locale')) ?: 'Remove image' }}"
+                          class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 shadow-lg transition-all opacity-90 hover:opacity-100 z-10">
+                    <span class="material-symbols-outlined text-lg">close</span>
                   </button>
                 </div>
-              </label>
-
-              <!-- Images Upload -->
-              <div x-data="imageUploader()" x-ref="imageUploaderContainer" class="flex flex-col">
-                <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.abaya_images', [], session('locale')) }}</span>
-                <input type="file" 
-                       multiple 
-                       x-ref="fileInput" 
-                       @change="handleFiles($event)"
-                       class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition w-full mb-2" 
-                       id="images" 
-                       name="images[]" />
-                
-                <!-- Preview Selected Images -->
-                <div class="flex flex-wrap gap-2 mt-auto">
-                  <template x-for="(image, index) in images" :key="index">
-                    <div class="relative w-20 h-20 border-2 border-gray-200 rounded-lg overflow-hidden">
-                      <img :src="image.url" class="object-cover w-full h-full" />
-                      <button type="button" 
-                              @click="removeImage(index)"
-                              class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700 shadow-lg transition-all z-10"
-                              title="Remove image">
-                        <span class="material-symbols-outlined text-sm">close</span>
-                      </button>
-                    </div>
-                  </template>
-                </div>
               </div>
-            </div>
-            
-            <!-- Hidden description field for form submission -->
-            <input type="hidden" name="abaya_notes" id="abaya_notes" value="" />
+            </label>
+
+            <label class="flex flex-col md:col-span-3">
+              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.stock_notes', [], session('locale')) ?: 'Notes' }}</span>
+              <textarea name="stock_notes" id="stock_notes" rows="3"
+                        placeholder="{{ trans('messages.stock_notes_placeholder', [], session('locale')) ?: 'Optional notes' }}"
+                        class="rounded-lg px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition"></textarea>
+            </label>
           </div>
         </div>
 
-        <!-- Pricing & Tailors Section -->
         <div class="space-y-4 pt-4 border-t border-gray-200">
           <div class="flex items-center gap-2 pb-3 border-b border-gray-200">
             <span class="material-symbols-outlined text-primary text-xl">attach_money</span>
-            <h2 class="text-lg font-bold text-gray-800">{{ trans('messages.costs_tailors', [], session('locale')) }}</h2>
+            <h2 class="text-lg font-bold text-gray-800">{{ trans('messages.pricing', [], session('locale')) }}</h2>
           </div>
           
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <!-- Cost Price -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <label class="flex flex-col">
               <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.cost_price', [], session('locale')) }}</span>
-              <input type="number"
-                     step="0.01"
-                     min="0"
+              <input type="number" step="0.001" min="0"
                      placeholder="{{ trans('messages.cost_price_placeholder', [], session('locale')) }}"
                      class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" 
-                     name="cost_price" 
-                     id="cost_price" />
+                     name="cost_price" id="cost_price" />
             </label>
 
-            <!-- Sale Price -->
             <label class="flex flex-col">
               <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.sale_price', [], session('locale')) }}</span>
-              <input type="number" 
-                     step="0.01"
-                     min="0"
-                     name="sales_price" 
-                     id="sales_price"
+              <input type="number" step="0.001" min="0"
+                     name="sales_price" id="sales_price"
                      placeholder="{{ trans('messages.sale_price_placeholder', [], session('locale')) }}"
                      class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
             </label>
 
-            <!-- Tailor Charges -->
             <label class="flex flex-col">
-              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.tailor_value', [], session('locale')) }}</span>
-              <input type="number" 
-                     step="0.01"
-                     min="0"
-                     name="tailor_charges" 
-                     id="tailor_charges"
-                     placeholder="{{ trans('messages.tailor_value_placeholder', [], session('locale')) }}"
+              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.discount', [], session('locale')) }}</span>
+              <input type="number" step="0.001" min="0"
+                     name="discount" id="discount"
+                     placeholder="{{ trans('messages.discount_placeholder', [], session('locale')) }}"
                      class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
             </label>
-          </div>
 
-          <!-- Tailors Selection -->
-          <label class="flex flex-col">
-            <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.tailors', [], session('locale')) }}</span>
-            <select class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" 
-                    name="tailor_id" 
-                    id="tailor_id">
-              <option value="">{{ trans('messages.select_tailors', [], session('locale')) }}</option>
-              @foreach($tailors as $tailor)
-                <option value="{{ $tailor->id }}">{{ $tailor->tailor_name }}</option>
-              @endforeach
-            </select>
-          </label>
-        </div>
-
-        <!-- Materials Assignment Section -->
-        <div class="pt-4 border-t border-gray-200">
-          <div class="flex items-center gap-2 pb-3 border-b border-gray-200">
-            <span class="material-symbols-outlined text-primary text-xl">inventory</span>
-            <h2 class="text-lg font-bold text-gray-800">{{ trans('messages.materials_assignment', [], session('locale')) ?: 'Materials Assignment' }}</h2>
-          </div>
-
-          <!-- Materials Table - Full Width -->
-          <div class="row">
-            <div class="col-12 col-lg-12">
-              <div class="overflow-x-auto border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
-                <table class="min-w-full text-xs">
-                  <thead class="bg-gray-50 sticky top-0">
-                    <tr>
-                      <th class="px-2 py-1.5 border text-center font-semibold text-xs">{{ trans('messages.material_name', [], session('locale')) ?: 'Material Name' }}</th>
-                      <th class="px-2 py-1.5 border text-center font-semibold text-xs w-28">{{ trans('messages.quantity', [], session('locale')) ?: 'Quantity' }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @forelse($materials as $index => $material)
-                      <tr class="hover:bg-gray-50 border-b">
-                        <td class="px-2 py-1.5 border text-center">
-                          <div class="flex items-center gap-1.5 justify-center">
-                            @if($material->material_image)
-                              <img src="{{ asset('images/materials/' . $material->material_image) }}" 
-                                   alt="{{ $material->material_name }}" 
-                                   class="w-6 h-6 object-cover rounded">
-                            @endif
-                            <span class="font-medium text-xs">{{ $material->material_name }}</span>
-                            <span class="text-xs text-gray-400">({{ $material->unit ?: 'meters' }})</span>
-                          </div>
-                          <input type="hidden" name="abaya_materials[{{ $index }}][material_id]" value="{{ $material->id }}">
-                          <input type="hidden" name="abaya_materials[{{ $index }}][unit]" value="{{ $material->unit ?: 'meters' }}">
-                        </td>
-                        <td class="px-2 py-1.5 border text-center">
-                          <div class="flex items-center gap-1 justify-center">
-                            <input 
-                              type="number" 
-                              step="0.01"
-                              min="0"
-                              name="abaya_materials[{{ $index }}][quantity]"
-                              placeholder="0"
-                              oninput="if(this.value < 0) this.value = 0;"
-                              onkeydown="if(event.key === '-' || event.key === 'e' || event.key === 'E') event.preventDefault();"
-                              class="h-8 w-20 text-center rounded border border-gray-300 focus:ring-1 focus:ring-primary/50 focus:border-primary text-xs transition" />
-                            <span class="text-xs text-gray-400">{{ $material->unit ?: 'meters' }}</span>
-                          </div>
-                        </td>
-                      </tr>
-                    @empty
-                      <tr>
-                        <td colspan="2" class="px-3 py-4 text-center text-gray-400 text-xs">
-                          {{ trans('messages.no_materials_found', [], session('locale')) ?: 'No materials found in database' }}
-                        </td>
-                      </tr>
-                    @endforelse
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Availability Options Section -->
-        <div x-data="{ mode: 'color_size' }" class="space-y-4 pt-4 border-t border-gray-200">
-          <div class="flex items-center gap-2 pb-3 border-b border-gray-200">
-            <span class="material-symbols-outlined text-primary text-xl">inventory_2</span>
-            <h2 class="text-lg font-bold text-gray-800">{{ trans('messages.availability_options', [], session('locale')) }}</h2>
-          </div>
-
-          <!-- Minimum Stock Alert -->
-          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border border-yellow-300 bg-yellow-50 p-4 rounded-xl">
-            <div class="flex items-center gap-2">
-              <span class="material-symbols-outlined text-yellow-600 text-xl">warning</span>
-              <div>
-                <label class="text-sm font-semibold text-yellow-800 block">
-                  {{ trans('messages.general_minimum_abaya', [], session('locale')) }}
-                </label>
-                <p class="text-xs text-yellow-600">
-                  {{ trans('messages.system_alert_on_min_stock', [], session('locale')) }}
-                </p>
-              </div>
-            </div>
-            <input type="number" 
-                   min="0"
-                   placeholder="0" 
-                   name="notification_limit" 
-                   id="notification_limit"
-                   class="h-10 w-32 sm:w-40 rounded-lg text-center border border-yellow-400 focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 bg-white shadow-sm" />
-          </div>
-
-          <!-- Mode Selection -->
-          <div class="w-full">
-            <label class="flex items-center gap-2 p-3 border border-primary bg-primary/5 rounded-lg cursor-pointer transition hover:bg-primary/10 w-full">
-              <input type="radio" name="mode" value="color_size" x-model="mode" checked/>
-              <span class="text-sm font-medium">{{ trans('messages.by_color_and_size', [], session('locale')) }}</span>
+            <label class="flex flex-col">
+              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.tax', [], session('locale')) }}</span>
+              <input type="number" step="0.001" min="0"
+                     name="tax" id="tax"
+                     placeholder="{{ trans('messages.tax_placeholder', [], session('locale')) }}"
+                     class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
             </label>
-          </div>
 
-          <!-- Color Only Mode -->
-          <div x-show="mode === 'color'" 
-               x-transition 
-               x-data="{
-                 colors: [
-                   @foreach($colors as $c)
-                     { id: {{ $c->id }}, name: '{{ session('locale') == 'ar' ? $c->color_name_ar : $c->color_name_en }}', color_code: '{{ $c->color_code }}' },
-                   @endforeach
-                 ],
-                 rows: []
-               }">
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-sm border border-gray-200 rounded-lg">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-4 py-2 border text-right">{{ trans('messages.color', [], session('locale')) }}</th>
-                    <th class="px-4 py-2 border text-right">{{ trans('messages.quantity', [], session('locale')) }}</th>
-                    <th class="px-4 py-2 border text-center">{{ trans('messages.action', [], session('locale')) }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <template x-for="(row, index) in rows" :key="index">
-                    <tr>
-                      <td class="px-4 py-2 border flex items-center gap-2">
-                        <div class="w-5 h-5 rounded-full border" :style="'background:' + colors.find(c => c.id === row.color_id).color_code"></div>
-                        <span x-text="colors.find(c => c.id === row.color_id).name"></span>
-                        <input type="hidden" :name="'colors[' + row.color_id + '][color_id]'" :value="row.color_id">
-                      </td>
-                      <td class="px-4 py-2 border">
-                        <input type="number" 
-                               step="1"
-                               min="0"
-                               data-validate="quantity"
-                               @keydown="validateQuantityInput($event)"
-                               @paste="cleanQuantityOnPaste($event)"
-                               @input="row.qty = Math.max(0, Math.floor(row.qty)) || 0"
-                               class="h-10 w-24 text-center rounded-md border border-gray-300 focus:ring-2 focus:ring-primary/50" 
-                               :name="'colors[' + row.color_id + '][qty]'"
-                               x-model="row.qty" 
-                               placeholder="0">
-                      </td>
-                      <td class="px-4 py-2 border text-center">
-                        <button type="button" 
-                                @click="rows.splice(index,1)" 
-                                class="text-red-500 hover:text-red-700 transition">
-                          <span class="material-symbols-outlined text-lg">delete</span>
-                        </button>
-                      </td>
-                    </tr>
-                  </template>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="mt-4 flex gap-3 items-center">
-              <select x-ref="colorSelect" class="h-10 rounded-lg px-3 border border-gray-300 text-sm focus:ring-2 focus:ring-primary/50">
-                <template x-for="c in colors" :key="c.id">
-                  <option :value="c.id" x-text="c.name"></option>
-                </template>
-              </select>
-              <button type="button" 
-                      @click="
-                        const selectedId = Number($refs.colorSelect.value);
-                        if (!rows.find(r => r.color_id === selectedId)) {
-                          rows.push({ color_id: selectedId, qty: 0 });
-                        }
-                      " 
-                      class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 flex items-center gap-1 text-sm transition">
-                <span class="material-symbols-outlined text-sm">add</span> 
-                {{ trans('messages.add_color', [], session('locale')) }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Size Only Mode -->
-          <div x-show="mode === 'size'" 
-               x-transition 
-               x-data="{
-                 availableSizes: [
-                   @foreach($sizes as $s)
-                     { id: {{ $s->id }}, name: '{{ session('locale') == 'ar' ? $s->size_name_ar : $s->size_name_en }}' },
-                   @endforeach
-                 ],
-                 rows: []
-               }">
-            <div class="overflow-x-auto">
-              <table class="min-w-full text-sm border border-gray-200 rounded-lg">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-4 py-2 border text-right">{{ trans('messages.size', [], session('locale')) }}</th>
-                    <th class="px-4 py-2 border text-right">{{ trans('messages.quantity', [], session('locale')) }}</th>
-                    <th class="px-4 py-2 border text-center">{{ trans('messages.action', [], session('locale')) }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <template x-for="(row, index) in rows" :key="index">
-                    <tr>
-                      <td class="border px-4 py-2 text-right" x-text="row.size_name">
-                        <input type="hidden" :name="'sizes['+row.size_id+'][size_id]'" :value="row.size_id">
-                      </td>
-                      <td class="border px-4 py-2">
-                        <input type="number" 
-                               step="1"
-                               min="0"
-                               data-validate="quantity"
-                               @keydown="validateQuantityInput($event)"
-                               @paste="cleanQuantityOnPaste($event)"
-                               @input="row.qty = Math.max(0, Math.floor(row.qty)) || 0"
-                               class="w-24 h-10 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50"
-                               :name="'sizes['+row.size_id+'][qty]'"
-                               x-model="row.qty" 
-                               placeholder="0">
-                      </td>
-                      <td class="border px-4 py-2 text-center">
-                        <button type="button" 
-                                @click="rows.splice(index,1)" 
-                                class="text-red-500 hover:text-red-700 transition">
-                          <span class="material-symbols-outlined text-lg">delete</span>
-                        </button>
-                      </td>
-                    </tr>
-                  </template>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="mt-4 flex gap-3 items-center">
-              <select x-ref="sizeSelect" class="h-10 rounded-lg px-4 border border-gray-300 text-sm focus:ring-2 focus:ring-primary/50 w-64">
-                <template x-for="s in availableSizes" :key="s.id">
-                  <option :value="s.id" x-text="s.name"></option>
-                </template>
-              </select>
-              <button type="button" 
-                      @click="
-                        const selectedId = Number($refs.sizeSelect.value);
-                        const selectedSize = availableSizes.find(s => s.id === selectedId);
-                        if (selectedSize && !rows.find(r => r.size_id === selectedId)) {
-                          rows.push({ size_id: selectedId, size_name: selectedSize.name, qty: 0 });
-                        }
-                      " 
-                      class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 flex items-center gap-1 text-sm transition">
-                <span class="material-symbols-outlined text-sm">add</span> 
-                {{ trans('messages.add_size', [], session('locale')) }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Color & Size Mode -->
-          <div x-show="mode === 'color_size'" 
-               x-transition 
-               x-data="{
-                 availableColors: [
-                   @foreach($colors as $c)
-                     { id: {{ $c->id }}, name: '{{ session('locale') == 'ar' ? $c->color_name_ar : $c->color_name_en }}', color_code: '{{ $c->color_code }}' },
-                   @endforeach
-                 ],
-                 availableSizes: [
-                   @foreach($sizes as $s)
-                     { id: {{ $s->id }}, name: '{{ session('locale') == 'ar' ? $s->size_name_ar : $s->size_name_en }}' },
-                   @endforeach
-                 ],
-                 colorSizes: [],
-                 checkAndMergeDuplicate(currentIndex) {
-                   if (!this.colorSizes || !this.colorSizes[currentIndex]) return;
-                   const currentItem = this.colorSizes[currentIndex];
-                   if (!currentItem.color_id || !currentItem.size_id) return;
-                   for (let i = 0; i < this.colorSizes.length; i++) {
-                     if (i === currentIndex) continue;
-                     const otherItem = this.colorSizes[i];
-                     if (otherItem && otherItem.color_id == currentItem.color_id && otherItem.size_id == currentItem.size_id) {
-                       const currentQty = parseInt(currentItem.qty) || 0;
-                       const otherQty = parseInt(otherItem.qty) || 0;
-                       otherItem.qty = currentQty + otherQty;
-                       this.colorSizes.splice(currentIndex, 1);
-                       if (typeof show_notification !== 'undefined') {
-                         show_notification('success', '{{ trans('messages.quantity_merged', [], session('locale')) ?: 'Quantity merged with existing color/size combination' }}');
-                       }
-                       return;
-                     }
-                   }
-                 },
-                 addColorSizeRow() {
-                   const hasEmptyRow = this.colorSizes && this.colorSizes.some(item => !item.color_id && !item.size_id);
-                   if (!hasEmptyRow) {
-                     if (!this.colorSizes) this.colorSizes = [];
-                     this.colorSizes.push({ color_id: '', size_id: '', qty: 1 });
-                   }
-                 }
-               }">
-            <!-- Mobile cards -->
-            <div class="md:hidden space-y-3">
-              <template x-for="(item, index) in colorSizes" :key="'m-' + index">
-                <div class="border border-gray-200 rounded-xl p-4 bg-white">
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                      <p class="text-sm font-semibold text-gray-800">
-                        {{ trans('messages.color', [], session('locale')) }} / {{ trans('messages.size', [], session('locale')) }}
-                      </p>
-                      <p class="text-xs text-gray-500 mt-0.5">
-                        {{ trans('messages.quantity', [], session('locale')) ?: 'Quantity' }}
-                      </p>
-                    </div>
-                    <button type="button"
-                            @click="colorSizes.splice(index, 1)"
-                            class="text-red-600 hover:text-red-800 p-1 rounded-lg hover:bg-red-50 transition flex-shrink-0"
-                            title="{{ trans('messages.delete', [], session('locale')) }}">
-                      <span class="material-symbols-outlined text-xl">delete</span>
-                    </button>
-                  </div>
-
-                  <div class="grid grid-cols-1 gap-3 mt-3">
-                    <div>
-                      <label class="block text-xs font-semibold text-gray-600 mb-1">{{ trans('messages.color', [], session('locale')) }}</label>
-                      <select class="h-11 w-full rounded-lg px-3 border border-gray-300 text-sm focus:ring-2 focus:ring-primary/50"
-                              x-model="item.color_id"
-                              @change="item.color_id = Number($event.target.value); $nextTick(() => checkAndMergeDuplicate(index))">
-                        <option value="">{{ trans('messages.select_color', [], session('locale')) ?: 'Select Color' }}</option>
-                        <template x-for="c in availableColors" :key="c.id">
-                          <option :value="c.id" x-text="c.name"></option>
-                        </template>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-xs font-semibold text-gray-600 mb-1">{{ trans('messages.size', [], session('locale')) }}</label>
-                      <select class="h-11 w-full rounded-lg px-3 border border-gray-300 text-sm focus:ring-2 focus:ring-primary/50"
-                              x-model="item.size_id"
-                              @change="item.size_id = Number($event.target.value); $nextTick(() => checkAndMergeDuplicate(index))">
-                        <option value="">{{ trans('messages.select_size', [], session('locale')) ?: 'Select Size' }}</option>
-                        <template x-for="s in availableSizes" :key="s.id">
-                          <option :value="s.id" x-text="s.name"></option>
-                        </template>
-                      </select>
-                    </div>
-                    <div>
-                      <label class="block text-xs font-semibold text-gray-600 mb-1">{{ trans('messages.quantity', [], session('locale')) ?: 'Quantity' }}</label>
-                      <input type="number"
-                             data-validate="quantity"
-                             @keydown="validateQuantityInput($event)"
-                             @paste="cleanQuantityOnPaste($event)"
-                             class="w-full h-11 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50"
-                             x-model="item.qty"
-                             placeholder="0"
-                             min="1">
-                    </div>
-                  </div>
-                </div>
-              </template>
-
-              <div x-show="!colorSizes || colorSizes.length === 0" class="text-center text-sm text-gray-500 py-6 border border-dashed border-gray-200 rounded-xl">
-                {{ trans('messages.no_data_found', [], session('locale')) ?: 'No data found' }}
-              </div>
-            </div>
-
-            <!-- Desktop table -->
-            <div class="hidden md:block overflow-x-auto">
-              <table class="min-w-full text-sm border border-gray-200 rounded-lg">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th class="px-4 py-2 border text-right">{{ trans('messages.color', [], session('locale')) }}</th>
-                    <th class="px-4 py-2 border text-right">{{ trans('messages.size', [], session('locale')) }}</th>
-                    <th class="px-4 py-2 border text-right">{{ trans('messages.quantity', [], session('locale')) }}</th>
-                    <th class="px-4 py-2 border text-center">{{ trans('messages.action', [], session('locale')) }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <template x-for="(item, index) in colorSizes" :key="index">
-                    <tr>
-                      <td class="px-4 py-2 border">
-                        <select class="h-10 w-full rounded-lg px-3 border border-gray-300 text-sm focus:ring-2 focus:ring-primary/50"
-                                x-model="item.color_id"
-                                @change="item.color_id = Number($event.target.value); $nextTick(() => checkAndMergeDuplicate(index))">
-                          <option value="">{{ trans('messages.select_color', [], session('locale')) ?: 'Select Color' }}</option>
-                          <template x-for="c in availableColors" :key="c.id">
-                            <option :value="c.id" x-text="c.name"></option>
-                          </template>
-                        </select>
-                      </td>
-                      <td class="border px-4 py-2">
-                        <select class="h-10 w-full rounded-lg px-3 border border-gray-300 text-sm focus:ring-2 focus:ring-primary/50"
-                                x-model="item.size_id"
-                                @change="item.size_id = Number($event.target.value); $nextTick(() => checkAndMergeDuplicate(index))">
-                          <option value="">{{ trans('messages.select_size', [], session('locale')) ?: 'Select Size' }}</option>
-                          <template x-for="s in availableSizes" :key="s.id">
-                            <option :value="s.id" x-text="s.name"></option>
-                          </template>
-                        </select>
-                      </td>
-                      <td class="border px-4 py-2">
-                        <input type="number"
-                               data-validate="quantity"
-                               @keydown="validateQuantityInput($event)"
-                               @paste="cleanQuantityOnPaste($event)"
-                               class="w-24 h-10 text-center border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50"
-                               x-model="item.qty"
-                               placeholder="0"
-                               min="1">
-                      </td>
-                      <td class="border px-4 py-2 text-center">
-                        <button type="button" 
-                                @click="colorSizes.splice(index, 1)" 
-                                class="text-red-500 hover:text-red-700 transition">
-                          <span class="material-symbols-outlined text-lg">delete</span>
-                        </button>
-                      </td>
-                    </tr>
-                  </template>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Hidden inputs for submission (shared for mobile + desktop) -->
-            <div class="hidden">
-              <template x-for="(item, index) in colorSizes" :key="'h-' + index">
-                <template x-if="item.color_id && item.size_id">
-                  <div>
-                    <input type="hidden" :name="'color_sizes[' + item.color_id + '][' + item.size_id + '][qty]'" :value="item.qty">
-                    <input type="hidden" :name="'color_sizes[' + item.color_id + '][' + item.size_id + '][size_id]'" :value="item.size_id">
-                  </div>
-                </template>
-              </template>
-            </div>
-
-            <div class="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center">
-              <button type="button" 
-                      @click="addColorSizeRow()" 
-                      class="w-full sm:w-auto bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center justify-center gap-1 text-sm transition">
-                <span class="material-symbols-outlined text-sm">add</span> 
-                {{ trans('messages.add_color_size', [], session('locale')) ?: 'Add Color & Size' }}
-              </button>
-            </div>
+            <label class="flex flex-col">
+              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.general_minimum_stock', [], session('locale')) }}</span>
+              <input type="number" step="1" min="0" placeholder="0"
+                     name="notification_limit" id="notification_limit"
+                     class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
+            </label>
           </div>
         </div>
 
       </div>
 
-      <!-- Form Footer with Submit Button -->
       <div class="bg-gray-50 px-6 sm:px-8 py-4 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
         <a href="{{ url('view_stock') }}" 
            class="text-sm text-gray-600 hover:text-gray-800 transition-colors">

@@ -13,7 +13,7 @@ class ChannelStock extends Model
         'stock_id',
         'location_type',
         'location_id',
-        'abaya_code',
+        'stock_code',
         'item_type',
         'color_id',
         'size_id',

@@ -33,7 +33,7 @@ class UnitController extends Controller
         $unit = Unit::create(['unit_name' => $request->unit_name]);
         return response()->json([
             'status' => 'success',
-            'message' => __('Unit added successfully'),
+            'message' => trans('messages.unit_added_success', [], session('locale', 'en')),
             'unit' => $unit,
         ]);
     }
@@ -47,7 +47,7 @@ class UnitController extends Controller
         $unit->save();
         return response()->json([
             'status' => 'success',
-            'message' => __('Unit updated successfully'),
+            'message' => trans('messages.unit_updated_success', [], session('locale', 'en')),
             'unit' => $unit,
         ]);
     }
@@ -57,7 +57,7 @@ class UnitController extends Controller
         $unit->delete();
         return response()->json([
             'status' => 'success',
-            'message' => __('Unit deleted successfully'),
+            'message' => trans('messages.unit_deleted_success', [], session('locale', 'en')),
         ]);
     }
 }

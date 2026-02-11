@@ -22,7 +22,7 @@
         const search = alpineData ? alpineData.search : '';
 
         $.ajax({
-            url: '{{ route("abaya_materials.data") }}',
+            url: '{{ route("stock_materials.data") }}',
             method: 'GET',
             data: {
                 page: page,
@@ -52,7 +52,7 @@
 
     // Render table
     function renderTable(data) {
-        const tbody = $('#abaya_materials_body');
+        const tbody = $('#stock_materials_body');
         if (data.length === 0) {
             tbody.html(`
                 <tr>
@@ -78,7 +78,7 @@
                                  class="w-16 h-16 rounded-lg border object-cover shadow-sm"
                                  onerror="this.src='/images/placeholder.png'">
                             <div>
-                                <div class="font-semibold text-indigo-600">${item.abaya_code || '—'}</div>
+                                <div class="font-semibold text-indigo-600">${item.stock_code || '—'}</div>
                                 ${item.barcode ? `<div class="text-xs text-gray-500">Barcode: ${item.barcode}</div>` : ''}
                             </div>
                         </div>
@@ -121,9 +121,9 @@
 
     // Show materials modal
     function showMaterialsModal(item) {
-        // Populate abaya info
-        document.getElementById('modal_abaya_image').src = item.image || '/images/placeholder.png';
-        document.getElementById('modal_abaya_code').textContent = item.abaya_code || '—';
+        // Populate stock info
+        document.getElementById('modal_stock_image').src = item.image || '/images/placeholder.png';
+        document.getElementById('modal_stock_code').textContent = item.stock_code || '—';
         document.getElementById('modal_design_name').textContent = item.design_name || '—';
         const categoryLabel = '{{ trans('messages.category', [], session('locale')) }}';
         document.getElementById('modal_category').textContent = categoryLabel + ': ' + (item.category || '—');
@@ -185,7 +185,7 @@
 
     // Render pagination
     function renderPagination(response) {
-        const pagination = $('#abaya_materials_pagination');
+        const pagination = $('#stock_materials_pagination');
         let html = '<div class="flex justify-center items-center gap-2">';
 
         // Previous

@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('stock_audit_logs', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('stock_id');
-            $table->string('abaya_code')->nullable();
+            $table->string('stock_code')->nullable();
             $table->string('barcode')->nullable();
             $table->string('design_name')->nullable();
             $table->enum('operation_type', ['added', 'updated', 'sold', 'transferred', 'special_order'])->default('added');
@@ -32,7 +32,7 @@ return new class extends Migration
             $table->timestamps();
             
             $table->index('stock_id');
-            $table->index('abaya_code');
+            $table->index('stock_code');
             $table->index('barcode');
             $table->index('operation_type');
             $table->index('created_at');

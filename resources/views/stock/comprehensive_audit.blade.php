@@ -89,7 +89,7 @@
                         <tr>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.date', [], session('locale')) }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.time', [], session('locale')) }}</th>
-                            <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.abaya_code', [], session('locale')) ?: 'Abaya Code' }}</th>
+                            <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.stock_code', [], session('locale')) ?: 'stock Code' }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.barcode', [], session('locale')) }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.size', [], session('locale')) ?: 'Size' }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.design_name', [], session('locale')) }}</th>

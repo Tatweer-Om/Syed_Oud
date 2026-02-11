@@ -16,12 +16,9 @@ return new class extends Migration
             $table->string('material_name');
             $table->longText('description')->nullable();
             $table->string('unit')->nullable();
-            $table->string('category')->nullable();
-            $table->decimal('buy_price', 10, 2)->default(0);
-            $table->decimal('sell_price', 10, 2)->default(0);
-            $table->decimal('rolls_count', 10, 2)->default(0);
-            $table->decimal('meters_per_roll', 10, 2)->default(0);
-            $table->string('material_image')->nullable();
+            $table->decimal('quantity', 12, 2)->default(0);
+            $table->string('material_type', 50)->default('production');
+            $table->decimal('unit_price', 10, 3)->default(0);
             $table->string('added_by')->nullable();
             $table->string('user_id')->nullable();
             $table->string('updated_by')->nullable();
