@@ -224,16 +224,17 @@ public function getAllMaterials()
 /** Materials for purchase page select (id, name, unit, buy_price) */
     public function getMaterialsForPurchase()
     {
-        return Material::orderBy('material_name', 'ASC')
-            ->get(['id', 'material_name', 'unit', 'buy_price'])
+        $materials = Material::orderBy('material_name', 'ASC')
+            ->get(['id', 'material_name', 'unit', 'unit_price'])
             ->map(function ($m) {
                 return [
                     'id' => $m->id,
-                    'material_name' => $m->material_name,
+                    'material_name' => $m->material_name ?? '',
                     'unit' => $m->unit ?? '-',
-                    'buy_price' => $m->buy_price ?? 0,
+                    'buy_price' => (float) ($m->unit_price ?? 0),
                 ];
             });
+        return response()->json($materials->values()->all());
     }
 
     public function getMaterial33($id)
