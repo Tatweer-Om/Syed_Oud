@@ -9,6 +9,17 @@
         $userPermissions = auth()->user()->permissions ?? [];
         $permissions = is_array($userPermissions) ? $userPermissions : [];
     }
+
+    // $upcoming = AssetMaintenance::whereNotNull('next_maintenance_date')
+    // ->whereDate('next_maintenance_date', '>=', now())
+    // ->whereDate('next_maintenance_date', '<=', now()->addDays(7))
+    // ->get();
+
+    // $overdue = AssetMaintenance::whereNotNull('next_maintenance_date')
+    // ->whereDate('next_maintenance_date', '<', now())
+    // ->where('status', 2) // still pending
+    // ->get();
+
 @endphp
 <html class="light" dir="{{ $htmlDir }}" lang="{{ $currentLocale }}">
 <head>
@@ -152,6 +163,31 @@
             <a href="{{url('expense-categories')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'expense-categories' || strpos(request()->path(), 'expense-categories/') === 0) ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
                 <span class="material-symbols-outlined text-sm">chevron_right</span> 
                 {{ trans('messages.expense_categories', [], session('locale')) }}
+            </a>
+        </div>
+    </div>
+
+
+    @php
+        $assetsMenuActive = strpos($currentPath, 'assets') === 0 || strpos($currentPath, 'asset-categories') === 0;
+    @endphp
+    <div>
+        <button onclick="toggleSubmenu('assetsMenu')" 
+            class="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg hover:bg-secondary hover:text-accent transition-colors {{ $assetsMenuActive ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl">receipt_long</span>
+                <span class="font-medium text-sm">{{ trans('messages.assets', [], session('locale')) }}</span>
+            </div>
+            <span class="material-symbols-outlined text-sm transition-transform" id="arrow-assetsMenu">expand_more</span>
+        </button>
+        <div id="assetsMenu" class="submenu mt-2 pl-8 space-y-1 {{ $assetsMenuActive ? 'active' : '' }}">
+            <a href="{{url('assets')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'assets' || strpos(request()->path(), 'assets/') === 0) ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+                <span class="material-symbols-outlined text-sm">chevron_right</span> 
+                {{ trans('messages.asset_lang', [], session('locale')) }}
+            </a>
+            <a href="{{url('assetsmaintenance')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'assetsmaintenance' || strpos(request()->path(), 'assetsmaintenance/') === 0) ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+                <span class="material-symbols-outlined text-sm">chevron_right</span> 
+                {{ trans('messages.assetmaintenance_lang', [], session('locale')) }}
             </a>
         </div>
     </div>

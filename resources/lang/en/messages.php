@@ -1619,4 +1619,55 @@ return [
     'all_boutiques' => 'All Boutiques',
     'all_channels' => 'All Channels',
 
+
+
+    // asset Module
+    'asset_lang' => 'assets',
+    'assets' => 'assets',
+    'manage_assets' => 'Manage assets',
+    'add_new_asset' => 'Add New asset',
+    'add_asset' => 'Add asset',
+    'edit_asset' => 'Edit asset',
+    'search_asset' => 'Search for an asset...',
+    'asset_id' => 'asset ID',
+    'asset_id_placeholder' => 'Enter asset ID',
+    'asset_name' => 'asset Name',
+    'asset_department' => 'asset department', 
+    'purchase_date' => 'purchase date', 
+    'purchase_cost' => 'Purchase Cost',
+    'asset_usage' => 'usage',
+    'asset_status' => 'Status',
+    'asset_working' => 'working',
+    'asset_under_maintenance' => 'Under Maintenance',
+    'asset_stopped' => 'Stopped', 
+    'enter_asset_name' => 'Please enter asset name',
+    'enter_asset_department' => 'Please enter asset department',
+    'enter_asset_purchase_date' => 'Please enter asset purchase date',
+    'enter_asset_purchase_cost' => 'Please enter asset purchase cost',
+
+
+    // maintance
+    // asset Module
+    'assetmaintenance_lang' => 'maintenances',
+    'assetmaintenances' => 'maintenances',
+    'manage_assetmaintenances' => 'Manage maintenances',
+    'add_new_assetmaintenance' => 'Add New maintenance',
+    'add_assetmaintenance' => 'Add maintenance',
+    'edit_assetmaintenance' => 'Edit maintenance',
+    'search_assetmaintenance' => 'Search for an maintenance...',
+    'assetmaintenance_id' => 'maintenance ID',
+    'maintenance_type' => 'maintenance type', 
+    'maintenance_date' => 'maintenance date', 
+    'next_maintenance_date' => 'next maintenance date',
+    'description' => 'description',
+    'performed_by' => 'performed by',
+    'maintenance_cost' => 'cost',
+    'asset_maintenance_emergency' => 'Emergency',
+    'asset_maintenance_schedule' => 'Schedule', 
+    'asset_internal' => 'Internal', 
+    'asset_external' => 'External', 
+    'enter_maintenance_date' => 'Please enter maintenance date',
+    'enter_next_maintenance_date' => 'Please enter next maintenance date',
+    'enter_cost' => 'Please enter cost',
+
 ];

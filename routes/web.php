@@ -17,6 +17,8 @@ use App\Http\Controllers\ColorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AssetMaintenanceController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -188,3 +190,22 @@ Route::post('add_quantity', [StockController::class, 'add_quantity'])->name('add
 Route::get('stock-materials', [StockController::class, 'stockMaterials'])->name('stock_materials');
 Route::get('stock-materials/data', [StockController::class, 'getstockMaterials'])->name('stock_materials.data');
 Route::get('move_stock_to_system', [StockController::class, 'move_stock_to_system'])->name('move_stock_to_system');
+
+
+// umair's
+// asset
+Route::get('assets', [AssetController::class, 'index'])->name('asset');
+Route::post('assets', [AssetController::class, 'store']);
+Route::put('assets/{asset}', [AssetController::class, 'update']);
+Route::delete('assets/{asset}', [AssetController::class, 'destroy']);
+Route::get('assets/list', [AssetController::class, 'getassets']);
+Route::get('assets/{asset}', [AssetController::class, 'show']);
+
+
+// asset
+Route::get('assetsmaintenance', [AssetMaintenanceController::class, 'index'])->name('assetsmaintenance');
+Route::post('assetsmaintenance', [AssetMaintenanceController::class, 'store']);
+Route::put('assetsmaintenance/{asset}', [AssetMaintenanceController::class, 'update']);
+Route::delete('assetsmaintenance/{asset}', [AssetMaintenanceController::class, 'destroy']);
+Route::get('assetsmaintenance/list', [AssetMaintenanceController::class, 'getassetsmaintenance']);
+Route::get('assetsmaintenance/{asset}', [AssetMaintenanceController::class, 'show']);
