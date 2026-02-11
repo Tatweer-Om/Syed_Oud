@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\User;
-use App\Models\History;
 use App\Models\Material;
+use App\Models\History;
 use App\Models\MaterialQuantityAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -107,54 +107,43 @@ public function getmaterial()
  
  public function update_material(Request $request)
 {
-    // Validate input
+    // Validate input (same columns as add_material)
     $request->validate([
         'material_id' => 'required|exists:materials,id',
         'material_name' => 'required|string|max:255',
         'material_type' => 'nullable|string|in:production,packaging',
         'material_unit' => 'required|string',
-        'material_category' => 'nullable|string',
         'quantity' => 'nullable|numeric|min:0',
         'purchase_price' => 'nullable|numeric|min:0',
-        'sale_price' => 'nullable|numeric|min:0',
-        'meters_pieces' => 'nullable|numeric|min:0',
-        'material_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'material_notes' => 'nullable|string',
     ]);
 
     $material_id = $request->material_id;
     $material = Material::findOrFail($material_id);
     $user = Auth::user();
+    $previousData = $material->toArray();
 
-    // Update material image only if uploaded
-    if ($request->hasFile('material_image')) {
-        $folderPath = public_path('images/materials');
-        $material_image = time() . '.' . $request->file('material_image')->extension();
-        $request->file('material_image')->move($folderPath, $material_image);
-        $material->material_image = $material_image;
-    }
-
-    // Update fields
     $material->material_name   = $request->material_name;
     $material->material_type   = $request->material_type ?? $material->material_type ?? 'production';
     $material->description     = $request->material_notes ?? $material->description;
     $material->unit            = $request->material_unit;
-    $material->category        = $request->material_category ?? $material->category ?? 'general';
-    $material->buy_price       = $request->purchase_price ?? $material->buy_price;
-    $material->sell_price      = $request->sale_price ?? $material->sell_price ?? '1';
-    $quantity = floatval($request->quantity ?? $request->meters_pieces ?? 0);
-    if (($request->material_unit ?? '') === 'roll') {
-        $material->rolls_count     = max(0, $quantity);
-        $material->meters_per_roll = 1;
-    } else {
-        $material->rolls_count     = 1;
-        $material->meters_per_roll = max(0, $quantity);
-    }
-
-    // Keep track of user
-    $material->added_by = $user->name ?? 'system';
-    $material->user_id  = $user->id ?? 1;
+    $material->unit_price      = $request->purchase_price ?? $material->unit_price ?? 0;
+    $quantity = floatval($request->quantity ?? 0);
+    $material->quantity        = $quantity;
+    $material->updated_by      = $user ? ($user->user_name ?? $user->name ?? 'system') : 'system';
+    $material->user_id         = $user ? $user->id : 1;
 
     $material->save();
+
+    History::create([
+        'operation' => 'update',
+        'source' => 'material',
+        'previous_data' => $previousData,
+        'new_data' => $material->fresh()->toArray(),
+        'added_by' => $user->user_name ?? $user->name ?? 'system',
+        'user_id' => $user->id ?? null,
+        'added_at' => now(),
+    ]);
 
     return response()->json([
         'status' => 'success',
@@ -177,7 +166,19 @@ public function delete_material($id)
         ], 404);
     }
 
-    // Delete material
+    $user = Auth::user();
+    $previousData = $material->toArray();
+
+    History::create([
+        'operation' => 'delete',
+        'source' => 'material',
+        'previous_data' => $previousData,
+        'new_data' => null,
+        'added_by' => $user->user_name ?? $user->name ?? 'system',
+        'user_id' => $user->id ?? null,
+        'added_at' => now(),
+    ]);
+
     $material->delete();
 
     return response()->json([

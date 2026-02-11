@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Stock;
 use App\Models\Category;
+use App\Models\History;
 use App\Models\StockHistory;
 use App\Models\StockAuditLog;
 use Illuminate\Http\Request;
@@ -160,6 +161,16 @@ public function update_stock(Request $request)
         'notes' => 'Stock details updated',
     ]);
 
+    History::create([
+        'operation' => 'update',
+        'source' => 'stock',
+        'previous_data' => $oldData,
+        'new_data' => $stock->fresh()->toArray(),
+        'added_by' => Auth::user()?->user_name ?? 'system',
+        'user_id' => Auth::id(),
+        'added_at' => now(),
+    ]);
+
     $returnPage = (int) $request->get('return_page', 1);
     $redirectUrl = url('view_stock');
     if ($returnPage > 1) {
@@ -197,6 +208,17 @@ public function delete_stock($id)
         'user_id' => Auth::id(),
         'added_by' => Auth::user()?->user_name ?? null,
         'notes' => 'Stock deleted',
+    ]);
+
+    $previousData = $stock->toArray();
+    History::create([
+        'operation' => 'delete',
+        'source' => 'stock',
+        'previous_data' => $previousData,
+        'new_data' => null,
+        'added_by' => Auth::user()?->user_name ?? 'system',
+        'user_id' => Auth::id(),
+        'added_at' => now(),
     ]);
 
     $stock->delete();
@@ -242,12 +264,23 @@ public function stock_push_quantity(Request $request)
     }
     $current = (float) ($stock->quantity ?? 0);
     $newQty = $current + $qty;
+    $previousData = $stock->toArray();
     $stock->quantity = (string) $newQty;
     $stock->updated_by = Auth::user()?->user_name ?? null;
     $stock->save();
 
     $userName = Auth::user()?->user_name ?? null;
     $userId = Auth::id() ? (string) Auth::id() : null;
+
+    History::create([
+        'operation' => 'add stock',
+        'source' => 'stock',
+        'previous_data' => array_merge($previousData, ['quantity' => $current]),
+        'new_data' => array_merge($stock->fresh()->toArray(), ['quantity' => $newQty, 'quantity_added' => $qty]),
+        'added_by' => $userName,
+        'user_id' => Auth::id(),
+        'added_at' => now(),
+    ]);
 
     StockHistory::create([
         'stock_id' => $stock->id,
@@ -302,12 +335,23 @@ public function stock_pull_quantity(Request $request)
         ], 422);
     }
     $newQty = $available - $qty;
+    $previousData = $stock->toArray();
     $stock->quantity = (string) $newQty;
     $stock->updated_by = Auth::user()?->user_name ?? null;
     $stock->save();
 
     $userName = Auth::user()?->user_name ?? null;
     $userId = Auth::id() ? (string) Auth::id() : null;
+
+    History::create([
+        'operation' => 'pull stock',
+        'source' => 'stock',
+        'previous_data' => array_merge($previousData, ['quantity' => $available, 'pull_reason' => $reason]),
+        'new_data' => array_merge($stock->fresh()->toArray(), ['quantity' => $newQty, 'quantity_pulled' => $qty, 'pull_reason' => $reason]),
+        'added_by' => $userName,
+        'user_id' => Auth::id(),
+        'added_at' => now(),
+    ]);
 
     StockHistory::create([
         'stock_id' => $stock->id,

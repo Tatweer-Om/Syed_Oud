@@ -14,7 +14,8 @@ $(document).ready(function() {
                 var invoiceAmt = parseFloat(d.invoice_amount || d.total_amount || 0).toFixed(2);
                 var actionCells = '';
                 if (isCompleted) {
-                    actionCells = '<button type="button" class="purchase-view-materials-btn inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-600 text-white text-xs font-semibold hover:bg-gray-700" data-id="' + d.id + '" data-completed="1"><span class="material-symbols-outlined text-sm">inventory_2</span> {{ trans("messages.view_materials", [], session("locale")) }}</button>' +
+                    actionCells = '<a href="{{ url("purchase") }}/' + d.id + '/profile" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700" title="{{ trans("messages.view_profile", [], session("locale")) }}"><span class="material-symbols-outlined text-sm">visibility</span> {{ trans("messages.view_profile", [], session("locale")) }}</a>' +
+                        '<button type="button" class="purchase-view-materials-btn inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-600 text-white text-xs font-semibold hover:bg-gray-700" data-id="' + d.id + '" data-completed="1"><span class="material-symbols-outlined text-sm">inventory_2</span> {{ trans("messages.view_materials", [], session("locale")) }}</button>' +
                         '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-300 text-gray-500 text-xs cursor-not-allowed" title="{{ trans("messages.completed", [], session("locale")) }}"><span class="material-symbols-outlined text-sm">edit</span> {{ trans("messages.edit", [], session("locale")) }}</span>' +
                         '<span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-gray-300 text-gray-500 text-xs cursor-not-allowed"><span class="material-symbols-outlined text-sm">delete</span></span>';
                 } else {

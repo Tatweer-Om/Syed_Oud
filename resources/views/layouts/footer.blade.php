@@ -50,7 +50,7 @@
          @include('custom_js.material_list_js')
           @elseif ($route_name == 'view_units')
          @include('custom_js.unit_list_js')
-          @elseif ($route_name == 'purchase')
+          @elseif ($route_name == 'purchase' && $routeName != 'purchase.profile')
          @include('custom_js.purchase_js')
           @elseif ($route_name == 'view_purchase')
          @include('custom_js.view_purchase_js')
