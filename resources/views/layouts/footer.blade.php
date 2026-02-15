@@ -54,6 +54,16 @@
          @include('custom_js.purchase_js')
           @elseif ($route_name == 'view_purchase')
          @include('custom_js.view_purchase_js')
+         @elseif ($routeName == 'production.profile')
+        @include('custom_js.production_profile_js')
+         @elseif ($routeName == 'packaging.create')
+        @include('custom_js.packaging_js')
+         @elseif ($routeName == 'packaging.profile')
+        @include('custom_js.packaging_profile_js')
+         @elseif (($route_name == 'production' || $routeName == 'production.draft.edit') && $routeName != 'production.profile')
+        @include('custom_js.production_js')
+          @elseif ($route_name == 'view_production')
+         @include('custom_js.view_production_js')
            @elseif ($route_name == 'edit_material')
          @include('custom_js.edit_material_js')
           @elseif ($route_name == 'spcialorder')
@@ -88,11 +98,6 @@
          @include('custom_js.movement_log_js')
           @elseif ($routeName == 'tailor_material_audit')
          @include('custom_js.material_audit_js')
-{{-- umair's --}}
-         @elseif ($route_name == 'asset')
-         @include('custom_js.asset_js')
-         @elseif ($route_name == 'assetsmaintenance')
-         @include('custom_js.asset_maintenance_js')
     @endif
          
   </body>

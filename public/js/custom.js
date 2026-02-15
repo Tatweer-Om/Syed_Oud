@@ -4,6 +4,7 @@
       "posMenu",
       "specialordersMenu",
       "tailorMenu",
+      "productionMenu",
       "inventoryMenu",
       "boutiquesMenu",
       "customersMenu",

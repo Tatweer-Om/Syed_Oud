@@ -67,7 +67,7 @@
                         <tr>
                             <th class="text-center px-3 sm:px-4 md:px-6 py-3 font-bold whitespace-nowrap min-w-[200px]">{{ trans('messages.stock_name', [], session('locale')) ?: 'Stock Name' }}</th>
                             <th class="text-center px-3 sm:px-4 md:px-6 py-3 font-bold whitespace-nowrap min-w-[120px]">{{ trans('messages.barcode', [], session('locale')) }}</th>
-                            <th class="text-center px-3 sm:px-4 md:px-6 py-3 font-bold whitespace-nowrap min-w-[100px] d-none">{{ trans('messages.quantity', [], session('locale')) }}</th>
+                            <th class="text-center px-3 sm:px-4 md:px-6 py-3 font-bold whitespace-nowrap min-w-[100px]">{{ trans('messages.quantity', [], session('locale')) }}</th>
                             <th class="text-center px-3 sm:px-4 md:px-6 py-3 font-bold whitespace-nowrap min-w-[120px]">{{ trans('messages.sales_price', [], session('locale')) }}</th>
                             <th class="text-center px-3 sm:px-4 md:px-6 py-3 font-bold whitespace-nowrap min-w-[200px]">{{ trans('messages.actions', [], session('locale')) }}</th>
                         </tr>

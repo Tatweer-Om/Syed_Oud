@@ -54,7 +54,7 @@
                         </div>
                     </td>
                     <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap font-medium">${stock.barcode || '-'}</td>
-                    <td class="px-3 sm:px-4 md:px-6 py-3 text-center font-bold whitespace-nowrap d-none">${quantity}</td>
+                    <td class="px-3 sm:px-4 md:px-6 py-3 text-center font-bold whitespace-nowrap">${quantity}</td>
                     <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap font-semibold text-[var(--primary-color)]">${formattedSalesPrice}</td>
                     <td class="px-3 sm:px-4 md:px-6 py-3 text-center whitespace-nowrap">
                         <div class="flex flex-wrap justify-center gap-2 text-[12px] font-semibold text-gray-700">
@@ -103,7 +103,7 @@
                             </div>
                             ${categoryName !== '-' ? `<p class="text-gray-600 text-xs">${trans.category}: ${categoryName}</p>` : ''}
                             <p class="text-gray-600 text-xs">Barcode: ${stock.barcode || '-'}</p>
-                            <p class="text-gray-600 text-xs font-semibold d-none">${trans.quantity}: ${quantity}</p>
+                            <p class="text-gray-600 text-xs font-semibold">${trans.quantity}: ${quantity}</p>
                         </div>
                     </div>
                     <div class="mt-4 border-t pt-3">
