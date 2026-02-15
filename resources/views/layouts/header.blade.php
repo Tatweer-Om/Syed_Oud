@@ -81,6 +81,31 @@
         <span class="font-medium text-sm">{{ trans('messages.dashboard', [], session('locale')) }}</span>
     </a>
 
+    <!-- Production & Packaging -->
+    @php
+        $productionMenuActive = strpos($currentPath, 'production') === 0 || strpos($currentPath, 'packaging') === 0 || strpos($currentPath, 'view_production') === 0;
+    @endphp
+    <div>
+        <button onclick="toggleSubmenu('productionMenu')" 
+            class="w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg hover:bg-secondary hover:text-accent transition-colors {{ $productionMenuActive ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-xl">precision_manufacturing</span>
+                <span class="font-medium text-sm">{{ trans('messages.production', [], session('locale')) }} & {{ trans('messages.packaging', [], session('locale')) }}</span>
+            </div>
+            <span class="material-symbols-outlined text-sm transition-transform" id="arrow-productionMenu">expand_more</span>
+        </button>
+        <div id="productionMenu" class="submenu mt-2 pl-8 space-y-1 {{ $productionMenuActive ? 'active' : '' }}">
+            <a href="{{url('view_production')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'view_production' || strpos(request()->path(), 'production/') === 0 || strpos(request()->path(), 'packaging/') === 0) ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+                <span class="material-symbols-outlined text-sm">chevron_right</span> 
+                {{ trans('messages.all_productions', [], session('locale')) }}
+            </a>
+            <a href="{{url('production')}}" class="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg hover:bg-secondary hover:text-accent {{ (trim(request()->path(), '/') === 'production') ? 'bg-cyan-100 text-cyan-600 font-semibold' : '' }}">
+                <span class="material-symbols-outlined text-sm">chevron_right</span> 
+                {{ trans('messages.production', [], session('locale')) }}
+            </a>
+        </div>
+    </div>
+
     <!-- Stock & Material (Inventory) -->
     @php
         $inventoryMenuActive = strpos($currentPath, 'view_stock') === 0 || strpos($currentPath, 'stock') === 0 || strpos($currentPath, 'purchase') === 0 || strpos($currentPath, 'view_purchase') === 0 || strpos($currentPath, 'view_material') === 0 || strpos($currentPath, 'view_units') === 0 || strpos($currentPath, 'material') === 0 || strpos($currentPath, 'categories') === 0 || strpos($currentPath, 'stock-materials') === 0 || strpos($currentPath, 'stock/comprehensive-audit') === 0 || strpos($currentPath, 'material-quantity-audit') === 0;
