@@ -96,9 +96,9 @@
          @include('custom_js.manage_quantity_js') -->
           @elseif ($route_name == 'movements_log')
          @include('custom_js.movement_log_js')
-         @elseif ($routeName == 'tailor_material_audit')
-        @include('custom_js.material_audit_js')
-   @endif
+          @elseif ($routeName == 'tailor_material_audit')
+         @include('custom_js.material_audit_js')
+    @endif
          
   </body>
 </html>
