@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('production_id')->unique()->nullable(); // PRO-0{id}
             $table->string('filling_id')->unique()->nullable(); // FIL-0{id}
             $table->foreignId('stock_id')->constrained('stocks')->onDelete('cascade');
-            $table->decimal('estimated_output', 10, 2)->default(0);
+            $table->decimal('estimated_output', 10, 3)
+                ->default(0)
+                ->comment('Estimated packaging units');
             $table->decimal('total_quantity', 10, 2)->default(0);
             $table->integer('total_items')->default(0);
             $table->text('notes')->nullable();

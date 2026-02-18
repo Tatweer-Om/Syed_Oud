@@ -10,6 +10,7 @@ class Stock extends Model
         'stock_name',
         'category_id',
         'barcode',
+        'production_unit_id',
         'stock_notes',
         'image',
         'cost_price',
@@ -27,6 +28,12 @@ class Stock extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    // Production unit (from units table)
+    public function productionUnit()
+    {
+        return $this->belongsTo(Unit::class, 'production_unit_id');
     }
 
     // Stock has audit logs

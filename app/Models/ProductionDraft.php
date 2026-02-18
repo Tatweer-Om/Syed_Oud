@@ -10,6 +10,7 @@ class ProductionDraft extends Model
         'stock_id',
         'production_date',
         'estimated_output',
+        'expected_output',
         'materials_json',
         'total_quantity',
         'total_items',
@@ -25,6 +26,7 @@ class ProductionDraft extends Model
     protected $casts = [
         'materials_json' => 'array',
         'estimated_output' => 'decimal:2',
+        'expected_output' => 'decimal:2',
         'total_quantity' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'cost_per_unit' => 'decimal:2',

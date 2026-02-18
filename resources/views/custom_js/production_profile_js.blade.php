@@ -3,8 +3,8 @@ $(document).ready(function() {
     var allMaterials = [];
     var productionMaterials = [];
     
-    // Load all materials for add dropdown
-    $.get("{{ url('materials/for-purchase') }}", function(data) {
+    // Load materials for add dropdown (only material_type = production)
+    $.get("{{ url('materials/for-production') }}", function(data) {
         allMaterials = data || [];
     });
     
@@ -54,10 +54,16 @@ $(document).ready(function() {
     }
     loadProductionHistory();
     
-    // Modal handlers
-    $('#btn_view_materials_table').on('click', function() {
-        $('#materialsTableModal').removeClass('hidden');
+    // Tab switching
+    $('.profile-tab').on('click', function() {
+        var tab = $(this).data('tab');
+        $('.profile-tab').removeClass('active');
+        $(this).addClass('active');
+        $('.profile-tab-content').removeClass('active');
+        $('#tab-' + tab).addClass('active');
     });
+    
+    // Modal handlers (btn_view_materials_table removed - materials table now in Materials & Cost tab)
     
     $('#btn_add_material').on('click', function() {
         $('#add_material_search').val('');
@@ -347,51 +353,62 @@ $(document).ready(function() {
         });
     });
     
-    // Production Completion - SweetAlert confirmation only
+    // Production Completion - Modal with Expected output, Actual output, Notes
     $('#btn_complete_production').on('click', function() {
-        Swal.fire({
-            title: '{{ trans("messages.confirm_complete_production_title", [], session("locale")) }}',
-            text: '{{ trans("messages.confirm_complete_production_packaging", [], session("locale")) }}',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#16a34a',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: '{{ trans("messages.yes_complete", [], session("locale")) }}',
-            cancelButtonText: '{{ trans("messages.cancel", [], session("locale")) }}'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: "{{ url('production') }}/" + PRODUCTION_ID + "/complete",
-                    type: "POST",
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(res) {
-                        if (res.status === 'success') {
-                            Swal.fire({
-                                title: '{{ trans("messages.success", [], session("locale")) }}',
-                                text: res.message,
-                                icon: 'success',
-                                confirmButtonColor: '#16a34a'
-                            }).then(() => {
-                                window.location.href = "{{ url('view_production') }}";
-                            });
-                        } else {
-                            Swal.fire({
-                                title: '{{ trans("messages.error", [], session("locale")) }}',
-                                text: res.message || 'Error',
-                                icon: 'error'
-                            });
-                        }
-                    },
-                    error: function(xhr) {
-                        var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error';
-                        Swal.fire({
-                            title: '{{ trans("messages.error", [], session("locale")) }}',
-                            text: msg,
-                            icon: 'error'
-                        });
-                    }
+        $('#complete_actual_output').val('');
+        $('#complete_production_notes').val('');
+        $('#completeProductionModal').removeClass('hidden').addClass('flex');
+    });
+    $(document).on('click', '.close-complete-modal', function() {
+        $('#completeProductionModal').addClass('hidden').removeClass('flex');
+    });
+    $('#completeProductionModal').on('click', function(e) {
+        if (e.target === this) $(this).addClass('hidden').removeClass('flex');
+    });
+    $('#confirm_complete_production').on('click', function() {
+        var $btn = $(this);
+        var actualOutput = parseFloat($('#complete_actual_output').val()) || 0;
+        var completionNotes = $('#complete_production_notes').val().trim();
+        if (actualOutput < 0) {
+            show_notification('error', '{{ trans("messages.actual_output", [], session("locale")) }} must be non-negative');
+            return;
+        }
+        $btn.prop('disabled', true);
+        $.ajax({
+            url: "{{ url('production') }}/" + PRODUCTION_ID + "/complete",
+            type: "POST",
+            data: {
+                _token: '{{ csrf_token() }}',
+                actual_output: actualOutput,
+                completion_notes: completionNotes
+            },
+            success: function(res) {
+                if (res.status === 'success') {
+                    $('#completeProductionModal').addClass('hidden').removeClass('flex');
+                    Swal.fire({
+                        title: '{{ trans("messages.success", [], session("locale")) }}',
+                        text: res.message,
+                        icon: 'success',
+                        confirmButtonColor: '#16a34a'
+                    }).then(() => {
+                        window.location.href = "{{ url('view_production') }}";
+                    });
+                } else {
+                    $btn.prop('disabled', false);
+                    Swal.fire({
+                        title: '{{ trans("messages.error", [], session("locale")) }}',
+                        text: res.message || 'Error',
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false);
+                var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error';
+                Swal.fire({
+                    title: '{{ trans("messages.error", [], session("locale")) }}',
+                    text: msg,
+                    icon: 'error'
                 });
             }
         });

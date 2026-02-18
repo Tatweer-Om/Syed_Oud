@@ -53,6 +53,7 @@
       <div><span class="label">{{ trans('messages.batch_id', [], session('locale')) }}:</span> <span class="val">{{ $production->batch_id ?? '-' }}</span></div>
       <div><span class="label">{{ trans('messages.estimated_output', [], session('locale')) }}:</span> <span class="val">{{ number_format($estimatedOutput, 0) }}</span></div>
       <div><span class="label">{{ trans('messages.actual_output', [], session('locale')) }}:</span> <span class="val">{{ $actualOutput > 0 ? number_format($actualOutput, 0) : '-' }}</span></div>
+      <div><span class="label">{{ trans('messages.actual_packaging_units', [], session('locale')) ?: 'Actual Packaging Units' }}:</span> <span class="val">{{ number_format($actualPackagingOutput, 2) }}</span></div>
       <div><span class="label">{{ trans('messages.completed_at', [], session('locale')) }}:</span> <span class="val">{{ $production->completed_at ? $production->completed_at->format('d M Y, H:i') : '-' }}</span></div>
       <div><span class="label">{{ trans('messages.added_by', [], session('locale')) }}:</span> <span class="val">{{ $production->added_by ?? '-' }}</span></div>
     </div>
@@ -138,8 +139,10 @@
       <div class="summary-row"><span>{{ trans('messages.total_cost', [], session('locale')) }} {{ trans('messages.materials', [], session('locale')) }}:</span><span><strong>{{ number_format($totalMaterialCost, 2) }}</strong></span></div>
       <div class="summary-row"><span>{{ trans('messages.estimated_output', [], session('locale')) }}:</span><span>{{ number_format($estimatedOutput, 0) }}</span></div>
       <div class="summary-row"><span>{{ trans('messages.actual_output', [], session('locale')) }} / {{ trans('messages.total', [], session('locale')) }} {{ trans('messages.unit', [], session('locale')) }}:</span><span>{{ number_format($finalOutput, 0) }}</span></div>
+      <div class="summary-row"><span>{{ trans('messages.actual_packaging_units', [], session('locale')) ?: 'Actual Packaging Units' }}:</span><span>{{ number_format($actualPackagingOutput, 2) }}</span></div>
       <div class="summary-row"><span>{{ trans('messages.cost_per_unit', [], session('locale')) }} ({{ trans('messages.estimated_output', [], session('locale')) }}):</span><span>{{ number_format($costPerUnitEstimated, 2) }}</span></div>
-      <div class="summary-row total"><span>{{ trans('messages.cost_per_unit', [], session('locale')) }} ({{ trans('messages.actual_output', [], session('locale')) }}):</span><span>{{ number_format($costPerUnitActual, 2) }}</span></div>
+      <div class="summary-row"><span>{{ trans('messages.cost_per_unit', [], session('locale')) }} ({{ trans('messages.actual_output', [], session('locale')) }}):</span><span>{{ number_format($costPerUnitActual, 2) }}</span></div>
+      <div class="summary-row total"><span>{{ trans('messages.cost_per_unit', [], session('locale')) }} ({{ trans('messages.actual_packaging_units', [], session('locale')) ?: 'Actual Packaging Units' }}):</span><span>{{ $actualPackagingOutput > 0 ? number_format($costPerUnitActualPackaging, 2) : '-' }}</span></div>
     </div>
   </div>
 </body>

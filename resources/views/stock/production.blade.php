@@ -56,7 +56,7 @@
           <span class="material-symbols-outlined text-primary text-xl">factory</span>
           <h2 class="text-lg font-bold text-gray-800">{{ trans('messages.production_details', [], session('locale')) }}</h2>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Production Date -->
           <label class="flex flex-col">
             <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.production_date', [], session('locale')) }}</span>
@@ -79,7 +79,7 @@
               <div id="stock_dropdown" class="production-stock-dropdown"></div>
             </div>
           </div>
-          <!-- Estimated Output -->
+          <!-- Estimated output -->
           <label class="flex flex-col">
             <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.estimated_output', [], session('locale')) }}</span>
             <input type="number"
@@ -88,6 +88,17 @@
                    name="estimated_output"
                    id="estimated_output"
                    placeholder="{{ trans('messages.estimated_output_placeholder', [], session('locale')) }}"
+                   class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
+          </label>
+          <!-- Expected output (unit shown in label when stock selected) -->
+          <label class="flex flex-col">
+            <span class="text-sm font-semibold text-gray-700 mb-1.5" id="expected_output_label">{{ trans('messages.expected_output', [], session('locale')) ?: 'Expected output' }}</span>
+            <input type="number"
+                   step="0.01"
+                   min="0"
+                   name="expected_output"
+                   id="expected_output"
+                   placeholder=""
                    class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
           </label>
         </div>

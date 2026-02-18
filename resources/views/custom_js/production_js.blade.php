@@ -9,8 +9,8 @@ $(document).ready(function() {
         stocks = data || [];
     });
 
-    // Load materials for production (id, material_name, unit, buy_price)
-    $.get("{{ url('materials/for-purchase') }}", function(data) {
+    // Load materials for production (id, material_name, unit) - only material_type = production
+    $.get("{{ url('materials/for-production') }}", function(data) {
         materials = data || [];
         if (window.PRODUCTION_DRAFT) fillFormFromDraft();
     });
@@ -20,6 +20,15 @@ $(document).ready(function() {
     var $stockId = $('#stock_id');
     var $dropdown = $('#stock_dropdown');
     var highlightedIndex = -1;
+
+    var expectedOutputLabelBase = '{{ trans("messages.expected_output", [], session("locale")) ?: "Expected output" }}';
+    function updateExpectedOutputLabel(unitName) {
+        if (unitName) {
+            $('#expected_output_label').text(expectedOutputLabelBase + ' (' + unitName + ')');
+        } else {
+            $('#expected_output_label').text(expectedOutputLabelBase);
+        }
+    }
 
     function renderStockDropdown(filter) {
         var list = stocks;
@@ -32,7 +41,8 @@ $(document).ready(function() {
         }
         var html = '';
         list.forEach(function(s, i) {
-            html += '<div class="production-stock-option" data-id="' + s.id + '" data-name="' + (s.stock_name || '').replace(/"/g, '&quot;') + '">' + (s.stock_name || '') + (s.barcode ? ' - ' + s.barcode : '') + '</div>';
+            var unitName = (s.production_unit_name || '').replace(/"/g, '&quot;');
+            html += '<div class="production-stock-option" data-id="' + s.id + '" data-name="' + (s.stock_name || '').replace(/"/g, '&quot;') + '" data-unit="' + unitName + '">' + (s.stock_name || '') + (s.barcode ? ' - ' + s.barcode : '') + '</div>';
         });
         if (!html) html = '<div class="production-stock-option text-gray-500">{{ trans("messages.no_stock_found", [], session("locale")) }}</div>';
         $dropdown.html(html).addClass('show');
@@ -44,6 +54,7 @@ $(document).ready(function() {
     });
     $stockSearch.on('input', function() {
         $stockId.val('');
+        updateExpectedOutputLabel('');
         renderStockDropdown($(this).val());
     });
     $stockSearch.on('keydown', function(e) {
@@ -66,8 +77,10 @@ $(document).ready(function() {
     $(document).on('click', '.production-stock-option[data-id]', function() {
         var id = $(this).data('id');
         var name = $(this).data('name');
+        var unitName = $(this).data('unit') || '';
         $stockId.val(id);
         $stockSearch.val(name);
+        updateExpectedOutputLabel(unitName);
         $dropdown.removeClass('show');
     });
     $(document).on('click', function(e) {
@@ -78,6 +91,35 @@ $(document).ready(function() {
     var $globalDropdown = $('#production_material_dropdown_global');
     var activeRow = null;
     var materialHighlightIndex = -1;
+    var availableLabel = '{{ trans("messages.available", [], session("locale")) ?: "Available" }}';
+
+    function getMaxAvailableForMaterial(materialId, excludeRow) {
+        var mat = materials.find(function(m) { return m.id == materialId; });
+        if (!mat) return 0;
+        var total = parseFloat(mat.quantity) || 0;
+        var usedElsewhere = 0;
+        $('#production_materials_body tr').each(function() {
+            if (excludeRow && this === excludeRow[0]) return;
+            if ($(this).find('.production-material-id').val() == materialId) {
+                usedElsewhere += parseFloat($(this).find('.production-qty').val()) || 0;
+            }
+        });
+        return Math.max(0, total - usedElsewhere);
+    }
+    function validateAndClampRowQty($row) {
+        var materialId = $row.find('.production-material-id').val();
+        if (!materialId) return;
+        var maxAvail = getMaxAvailableForMaterial(materialId, $row);
+        var qty = parseFloat($row.find('.production-qty').val()) || 0;
+        var unit = $row.find('.production-unit').val() || '';
+        if (qty > maxAvail) {
+            $row.find('.production-qty').val(maxAvail > 0 ? maxAvail : '');
+            show_notification('error', '{{ trans("messages.quantity_cannot_exceed_available", [], session("locale")) ?: "Quantity cannot exceed available stock" }}');
+        }
+        $row.attr('data-available', maxAvail);
+        $row.find('.production-qty').attr('max', maxAvail);
+        $row.find('.production-available-hint').text(availableLabel + ': ' + maxAvail.toFixed(2) + ' ' + unit);
+    }
 
     function renderMaterialDropdown($input, filter) {
         var list = materials;
@@ -89,7 +131,9 @@ $(document).ready(function() {
         }
         var html = '';
         list.forEach(function(m) {
-            html += '<div class="production-material-option" data-id="' + m.id + '" data-name="' + (m.material_name || '').replace(/"/g, '&quot;') + '" data-unit="' + (m.unit || '').replace(/"/g, '&quot;') + '" data-price="' + (parseFloat(m.buy_price) || 0) + '">' + (m.material_name || '').replace(/</g, '&lt;') + '</div>';
+            var avail = parseFloat(m.quantity) || 0;
+            var availText = ' (' + (availableLabel || 'Available') + ': ' + avail.toFixed(2) + ' ' + (m.unit || '') + ')';
+            html += '<div class="production-material-option" data-id="' + m.id + '" data-name="' + (m.material_name || '').replace(/"/g, '&quot;') + '" data-unit="' + (m.unit || '').replace(/"/g, '&quot;') + '" data-price="' + (parseFloat(m.buy_price) || 0) + '" data-available="' + avail + '">' + (m.material_name || '').replace(/</g, '&lt;') + '<span class="text-xs text-gray-500 ml-1">' + availText.replace(/</g, '&lt;') + '</span></div>';
         });
         if (!html) html = '<div class="production-material-option text-gray-500">{{ trans("messages.no_material_found", [], session("locale")) }}</div>';
         $globalDropdown.html(html).addClass('show');
@@ -114,7 +158,7 @@ $(document).ready(function() {
             '</div></td>' +
             '<td class="px-2 py-2 text-center col-unit"><input type="text" class="production-unit h-10 rounded-lg border-0 bg-gray-50 px-1 text-center text-sm" style="width:70px" readonly /></td>' +
             '<td class="px-2 py-2 text-center col-price"><span class="production-unit-price inline-block h-10 leading-10 rounded-lg bg-gray-100 px-2 text-center text-sm min-w-[70px]">0.00</span><input type="hidden" class="production-unit-price-val" value="0" /></td>' +
-            '<td class="px-3 py-2"><input type="number" min="0" step="0.01" class="production-qty w-full h-10 rounded-lg border border-gray-300 px-3 text-center" value="0" data-row="' + idx + '" /></td>' +
+            '<td class="px-3 py-2"><input type="number" min="0" step="0.01" class="production-qty w-full h-10 rounded-lg border border-gray-300 px-3 text-center" placeholder="0" data-row="' + idx + '" /></td>' +
             '<td class="px-3 py-2 text-center"><span class="production-total font-semibold">0.00</span></td>' +
             '<td class="px-2 py-2 text-center"><button type="button" class="production-remove-row text-red-500 hover:text-red-700 p-1" data-row="' + idx + '" title="{{ trans("messages.delete", [], session("locale")) }}"><span class="material-symbols-outlined text-lg">delete</span></button></td>' +
             '</tr>';
@@ -175,13 +219,21 @@ $(document).ready(function() {
                 if (result.isConfirmed) {
                     var addQty = parseFloat(row.find('.production-qty').val()) || 0;
                     var existingQty = parseFloat(otherRow.find('.production-qty').val()) || 0;
-                    otherRow.find('.production-qty').val(existingQty + addQty);
+                    var mergedQty = existingQty + addQty;
+                    var maxAvail = getMaxAvailableForMaterial(materialId, null);
+                    if (mergedQty > maxAvail) {
+                        mergedQty = maxAvail;
+                        show_notification('warning', '{{ trans("messages.quantity_cannot_exceed_available", [], session("locale")) ?: "Quantity cannot exceed available stock" }}');
+                    }
+                    otherRow.find('.production-qty').val(mergedQty > 0 ? mergedQty : '');
+                    otherRow.attr('data-available', maxAvail);
+                    otherRow.find('.production-qty').attr('max', maxAvail);
                     row.find('.production-material-id').val('');
                     row.find('.production-material-search').val('');
                     row.find('.production-unit').val('');
                     row.find('.production-unit-price').text('0.00');
                     row.find('.production-unit-price-val').val(0);
-                    row.find('.production-qty').val('0');
+                    row.find('.production-qty').val('');
                     row.find('.production-total').text('0.00');
                     updateAllRowTotals();
                 } else {
@@ -195,9 +247,15 @@ $(document).ready(function() {
         row.find('.production-material-search').val($opt.data('name') || '');
         row.find('.production-unit').val($opt.data('unit') || '');
         var unitPrice = parseFloat($opt.data('price')) || 0;
+        var available = parseFloat($opt.data('available')) || 0;
         row.find('.production-unit-price').text(unitPrice.toFixed(2));
         row.find('.production-unit-price-val').val(unitPrice);
+        row.attr('data-available', available);
+        row.find('.production-qty').attr('max', available);
+        row.find('.production-available-hint').remove();
+        row.find('.col-material .production-material-wrap').after('<span class="production-available-hint block text-xs text-gray-500 mt-0.5">' + (availableLabel || 'Available') + ': ' + available.toFixed(2) + ' ' + ($opt.data('unit') || '') + '</span>');
         hideGlobalDropdown();
+        validateAndClampRowQty(row);
         updateAllRowTotals();
     });
     $(document).on('click', function(e) {
@@ -207,17 +265,33 @@ $(document).ready(function() {
     });
     $(window).on('scroll', function() { hideGlobalDropdown(); });
 
-    // Clamp non-negative
-    function clampNonNegative($input) {
-        var v = parseFloat($input.val());
+    // Clamp non-negative. allowEmpty: when true, empty/negative stays as '' (use placeholder for 0)
+    function clampNonNegative($input, allowEmpty) {
+        var raw = ($input.val() || '').toString().trim();
+        var v = parseFloat(raw);
+        if (allowEmpty && (raw === '' || isNaN(v))) { $input.val(''); return; }
+        if (allowEmpty && v < 0) { $input.val(''); return; }
         if (isNaN(v) || v < 0) $input.val(0);
     }
     $('#estimated_output').on('input blur', function() {
         clampNonNegative($(this));
-        updateSummary(); // Recalculate cost per unit when estimated output changes
+        updateSummary();
+    });
+    $('#expected_output').on('input blur', function() {
+        clampNonNegative($(this));
     });
     $(document).on('input blur', '.production-qty', function() {
-        clampNonNegative($(this));
+        clampNonNegative($(this), true);
+        var $row = $(this).closest('tr');
+        var materialId = $row.find('.production-material-id').val();
+        validateAndClampRowQty($row);
+        if (materialId) {
+            $('#production_materials_body tr').each(function() {
+                if ($(this).find('.production-material-id').val() == materialId && this !== $row[0]) {
+                    validateAndClampRowQty($(this));
+                }
+            });
+        }
         updateAllRowTotals();
     });
 
@@ -282,20 +356,31 @@ $(document).ready(function() {
         }
         $('#stock_id').val(d.stock_id);
         $('#stock_search').val((d.stock && d.stock.stock_name) ? d.stock.stock_name : '');
+        var stockObj = stocks.find(function(s) { return s.id == d.stock_id; });
+        var unitName = (stockObj && stockObj.production_unit_name) ? stockObj.production_unit_name : '';
+        if (!unitName && d.stock && d.stock.production_unit) unitName = d.stock.production_unit.unit_name || '';
+        updateExpectedOutputLabel(unitName);
         $('#estimated_output').val(d.estimated_output || 0);
+        $('#expected_output').val(d.expected_output ?? '');
         $('#production_notes').val(d.notes || '');
         $('#production_materials_body tr').remove();
         var list = d.materials_json || [];
         list.forEach(function(m) {
             addMaterialRow();
             var $row = $('#production_materials_body tr').last();
+            var mat = materials.find(function(x) { return x.id == m.material_id; });
+            var available = (mat && mat.quantity != null) ? parseFloat(mat.quantity) : 0;
             $row.find('.production-material-id').val(m.material_id);
             $row.find('.production-material-search').val(m.material_name || '');
             $row.find('.production-unit').val(m.unit || '');
             var unitPrice = parseFloat(m.unit_price) || 0;
+            var qty = parseFloat(m.quantity) || 0;
             $row.find('.production-unit-price').text(unitPrice.toFixed(2));
             $row.find('.production-unit-price-val').val(unitPrice);
-            $row.find('.production-qty').val(parseFloat(m.quantity) || 0);
+            $row.attr('data-available', available);
+            $row.find('.production-qty').attr('max', available);
+            $row.find('.production-qty').val(qty > 0 ? Math.min(qty, available) : '');
+            $row.find('.col-material .production-material-wrap').after('<span class="production-available-hint block text-xs text-gray-500 mt-0.5">' + availableLabel + ': ' + available.toFixed(2) + ' ' + (m.unit || '') + '</span>');
         });
         if (list.length === 0) addMaterialRow();
         updateAllRowTotals();
@@ -307,6 +392,7 @@ $(document).ready(function() {
         var productionDate = $('#production_date').val();
         var stockId = $('#stock_id').val();
         var estimatedOutput = parseFloat($('#estimated_output').val()) || 0;
+        var expectedOutput = $('#expected_output').val() !== '' ? parseFloat($('#expected_output').val()) : null;
         var notes = $('#production_notes').val();
         var rows = [];
         var totalAmount = 0;
@@ -346,6 +432,7 @@ $(document).ready(function() {
             production_date: productionDate,
             stock_id: stockId,
             estimated_output: estimatedOutput,
+            expected_output: expectedOutput,
             total_amount: totalAmount,
             notes: notes,
             materials: rows
