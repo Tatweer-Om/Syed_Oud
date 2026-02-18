@@ -2,6 +2,7 @@
 $(document).ready(function() {
     var materials = [];
     var rowIndex = 0;
+    var PACKAGING_ID = $('#packaging_id').val();
 
     $.get("{{ url('materials/for-packaging') }}", function(data) {
         materials = data || [];
@@ -96,7 +97,6 @@ $(document).ready(function() {
         var row = activeRow;
         if (!row) return;
         var materialId = $opt.data('id');
-        // Check if material already exists in another row
         var otherRow = null;
         $('#packaging_materials_body tr').each(function() {
             if (this !== row[0] && $(this).find('.packaging-material-id').val() == materialId) {
@@ -132,8 +132,7 @@ $(document).ready(function() {
                     row.find('.packaging-unit').val('');
                     row.find('.packaging-unit-price').text('0.00');
                     row.find('.packaging-unit-price-val').val(0);
-                    row.find('.packaging-qty').val('').removeAttr('max');
-                    row.find('.packaging-available-hint').remove();
+                    row.find('.packaging-qty').val('');
                     row.find('.packaging-total').text('0.00');
                     updateAllRowTotals();
                 } else {
@@ -231,7 +230,6 @@ $(document).ready(function() {
 
     $('#packaging_save_btn').on('click', function() {
         if ($(this).prop('disabled')) return;
-        var productionId = $('#production_id').val();
         var packagingDate = ($('#packaging_date').val() || '').trim();
         var productionOutputTakenVal = ($('#production_output_taken').val() || '').trim();
         var expectedPackagingUnitsVal = ($('#expected_packaging_units').val() || '').trim();
@@ -277,11 +275,10 @@ $(document).ready(function() {
         var $btn = $('#packaging_save_btn');
         $btn.prop('disabled', true).html('...');
         $.ajax({
-            url: "{{ url('packaging') }}",
+            url: "{{ url('packaging') }}/" + PACKAGING_ID + "/add-phase",
             type: "POST",
             data: {
                 _token: '{{ csrf_token() }}',
-                production_id: productionId,
                 packaging_date: packagingDate,
                 production_output_taken: productionOutputTaken,
                 expected_packaging_units: expectedPackagingUnits,

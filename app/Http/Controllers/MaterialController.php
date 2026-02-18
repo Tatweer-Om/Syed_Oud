@@ -230,13 +230,14 @@ public function getAllMaterials()
     {
         $materials = Material::where('material_type', 'packaging')
             ->orderBy('material_name', 'ASC')
-            ->get(['id', 'material_name', 'unit', 'unit_price'])
+            ->get(['id', 'material_name', 'unit', 'unit_price', 'quantity'])
             ->map(function ($m) {
                 return [
                     'id' => $m->id,
                     'material_name' => $m->material_name ?? '',
                     'unit' => $m->unit ?? '-',
                     'buy_price' => (float) ($m->unit_price ?? 0),
+                    'quantity' => (float) ($m->quantity ?? 0),
                 ];
             });
         return response()->json($materials->values()->all());
@@ -389,7 +390,16 @@ public function getMaterialQuantityAuditData(Request $request)
         $page = $request->input('page', 1);
         $perPage = 20;
 
+        // Exclude all wastage from material audit (production_wastage, packaging_wastage, operation_type wastage)
         $query = MaterialQuantityAudit::with(['material', 'tailor', 'user'])
+            ->where(function ($q) {
+                $q->whereNotIn('source', ['production_wastage', 'packaging_wastage'])
+                  ->orWhereNull('source');
+            })
+            ->where(function ($q) {
+                $q->where('operation_type', '!=', 'wastage')
+                  ->orWhereNull('operation_type');
+            })
             ->orderBy('created_at', 'ASC')
             ->orderBy('id', 'ASC');
 

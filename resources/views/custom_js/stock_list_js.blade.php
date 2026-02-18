@@ -270,6 +270,7 @@ function openStockDetails(stockId) {
             $('#detail_stock_name').text(res.stock_name || '-');
             $('#detail_category').text(res.category_name || '-');
             $('#detail_barcode').text(res.barcode || '-');
+            $('#detail_production_unit').text(res.production_unit_name || '-');
             $('#detail_quantity').text(res.quantity ?? '-');
             $('#detail_cost_price').text(res.cost_price != null ? parseFloat(res.cost_price).toFixed(3) + ' OMR' : '-');
             $('#detail_sales_price').text(res.sales_price != null ? parseFloat(res.sales_price).toFixed(3) + ' OMR' : '-');

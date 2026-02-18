@@ -1,5 +1,63 @@
 <script>
 $(document).ready(function() {
+    var units = [];
+    $.get("{{ url('units/all') }}", function(data) {
+        units = data || [];
+    });
+
+    var $unitSearch = $('#production_unit_search');
+    var $unitId = $('#production_unit_id');
+    var $unitDropdown = $('#production_unit_dropdown');
+    var unitHighlightIndex = -1;
+
+    function renderUnitDropdown(filter) {
+        var list = units;
+        if (filter && filter.length) {
+            var f = filter.toLowerCase();
+            list = units.filter(function(u) {
+                return (u.unit_name || '').toLowerCase().indexOf(f) >= 0;
+            });
+        }
+        var html = '';
+        list.forEach(function(u, i) {
+            html += '<div class="stock-unit-option" data-id="' + u.id + '" data-name="' + (u.unit_name || '').replace(/"/g, '&quot;') + '">' + (u.unit_name || '') + '</div>';
+        });
+        if (!html) html = '<div class="stock-unit-option text-gray-500">No unit found</div>';
+        $unitDropdown.html(html).addClass('show');
+        unitHighlightIndex = -1;
+    }
+
+    $unitSearch.on('focus', function() { renderUnitDropdown($(this).val()); });
+    $unitSearch.on('input', function() {
+        $unitId.val('');
+        renderUnitDropdown($(this).val());
+    });
+    $unitSearch.on('keydown', function(e) {
+        var $opts = $unitDropdown.find('.stock-unit-option[data-id]');
+        if (e.keyCode === 40) {
+            e.preventDefault();
+            unitHighlightIndex = Math.min(unitHighlightIndex + 1, $opts.length - 1);
+            $opts.removeClass('highlight').eq(unitHighlightIndex).addClass('highlight');
+        } else if (e.keyCode === 38) {
+            e.preventDefault();
+            unitHighlightIndex = Math.max(unitHighlightIndex - 1, 0);
+            $opts.removeClass('highlight').eq(unitHighlightIndex).addClass('highlight');
+        } else if (e.keyCode === 13 && unitHighlightIndex >= 0 && $opts[unitHighlightIndex]) {
+            e.preventDefault();
+            $opts.eq(unitHighlightIndex).click();
+        } else if (e.keyCode === 27) {
+            $unitDropdown.removeClass('show');
+        }
+    });
+    $(document).on('click', '.stock-unit-option[data-id]', function() {
+        $unitId.val($(this).data('id'));
+        $unitSearch.val($(this).data('name'));
+        $unitDropdown.removeClass('show');
+    });
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.stock-unit-wrap').length) $unitDropdown.removeClass('show');
+    });
+
     // Image preview and remove
     function clearImagePreview() {
         $('#image').val('');

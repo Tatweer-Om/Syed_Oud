@@ -1,22 +1,25 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\StockController;
-use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AssetMaintenanceController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\SMSController;
-use App\Http\Controllers\SizeController;
-use App\Http\Controllers\ColorController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\UnitController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\PackagingController;
+use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SizeController;
+use App\Http\Controllers\SMSController;
+use App\Http\Controllers\StockController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\UnitController;
+use App\Http\Controllers\UserController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -64,18 +67,7 @@ Route::delete('categories/{category}', [CategoryController::class, 'destroy']);
 Route::get('categories/list', [CategoryController::class, 'getCategories']);
 Route::get('categories/{category}', [CategoryController::class, 'show']);
 
-Route::get('color', [ColorController::class, 'index'])->name('color');
-Route::post('add_color', [ColorController::class, 'add_color'])->name('add_color');
-Route::get('show_color', [ColorController::class, 'show_color'])->name('show_color');
-Route::post('edit_color', [ColorController::class, 'edit_color'])->name('edit_color');
-Route::post('update_color', [ColorController::class, 'update_color'])->name('update_color');
-Route::post('delete_color', [ColorController::class, 'delete_color'])->name('delete_color');
-Route::get('colors', [ColorController::class, 'index']);
-Route::post('colors', [ColorController::class, 'store']);
-Route::put('colors/{color}', [ColorController::class, 'update']);
-Route::delete('colors/{color}', [ColorController::class, 'destroy']);
-Route::get('colors/list', [ColorController::class, 'getcolors']);
-Route::get('colors/{color}', [ColorController::class, 'show']);
+
 
 Route::get('size', [SizeController::class, 'index'])->name('size');
 Route::post('sizes', [SizeController::class, 'store']);
@@ -220,6 +212,9 @@ Route::get('materials/for-packaging', [MaterialController::class, 'getMaterialsF
 Route::get('production/{id}/packaging', [PackagingController::class, 'create'])->name('packaging.create')->where('id', '[0-9]+');
 Route::post('packaging', [PackagingController::class, 'store']);
 Route::get('packaging/{id}/profile', [PackagingController::class, 'profile'])->name('packaging.profile')->where('id', '[0-9]+');
+Route::get('packaging/{id}/add-phase', [PackagingController::class, 'addPhasePage'])->name('packaging.add_phase')->where('id', '[0-9]+');
+Route::post('packaging/{id}/add-phase', [PackagingController::class, 'addPhase'])->where('id', '[0-9]+');
+Route::post('packaging/{id}/complete-phase', [PackagingController::class, 'completePhase'])->where('id', '[0-9]+');
 Route::post('packaging/{id}/add-material', [PackagingController::class, 'addMaterial'])->where('id', '[0-9]+');
 Route::post('packaging/{id}/remove-material', [PackagingController::class, 'removeMaterial'])->where('id', '[0-9]+');
 Route::post('packaging/{id}/add-wastage', [PackagingController::class, 'addWastage'])->where('id', '[0-9]+');

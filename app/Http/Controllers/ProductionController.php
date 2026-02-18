@@ -36,23 +36,40 @@ class ProductionController extends Controller
         return view('stock.view_production');
     }
 
-    /** Get all stocks for searchable select (id, stock_name, barcode) */
+    /** Get all stocks for searchable select (id, stock_name, barcode, production_unit_name) */
     public function getStocksForProduction()
     {
-        $stocks = Stock::select('id', 'stock_name', 'barcode')
+        $stocks = Stock::with('productionUnit:id,unit_name')
             ->whereNotNull('stock_name')
             ->orderBy('stock_name', 'ASC')
-            ->get();
-        return response()->json($stocks);
+            ->get(['id', 'stock_name', 'barcode', 'production_unit_id'])
+            ->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'stock_name' => $s->stock_name,
+                    'barcode' => $s->barcode,
+                    'production_unit_name' => $s->productionUnit?->unit_name ?? null,
+                ];
+            });
+        return response()->json($stocks->values()->all());
     }
 
-    /** Get materials for production (id, material_name, unit) - no price needed */
+    /** Get materials for production (id, material_name, unit, buy_price) - only material_type = production */
     public function getMaterialsForProduction()
     {
-        $materials = Material::select('id', 'material_name', 'unit')
+        $materials = Material::where('material_type', 'production')
             ->orderBy('material_name', 'ASC')
-            ->get();
-        return response()->json($materials);
+            ->get(['id', 'material_name', 'unit', 'unit_price', 'quantity'])
+            ->map(function ($m) {
+                return [
+                    'id' => $m->id,
+                    'material_name' => $m->material_name ?? '',
+                    'unit' => $m->unit ?? '-',
+                    'buy_price' => (float) ($m->unit_price ?? 0),
+                    'quantity' => (float) ($m->quantity ?? 0),
+                ];
+            });
+        return response()->json($materials->values()->all());
     }
 
     /** List production drafts */
@@ -90,6 +107,7 @@ class ProductionController extends Controller
             'stock_id' => 'required|exists:stocks,id',
             'production_date' => 'nullable|date',
             'estimated_output' => 'nullable|numeric|min:0',
+            'expected_output' => 'nullable|numeric|min:0',
             'total_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
             'materials' => 'required|array',
@@ -114,6 +132,7 @@ class ProductionController extends Controller
             'stock_id' => $request->stock_id,
             'production_date' => $request->production_date ?? now()->toDateString(),
             'estimated_output' => $estimatedOutput,
+            'expected_output' => $request->expected_output !== null && $request->expected_output !== '' ? (float) $request->expected_output : null,
             'notes' => $request->notes,
             'materials_json' => $materials,
             'total_quantity' => $totalQuantity,
@@ -165,6 +184,7 @@ class ProductionController extends Controller
             'stock_id' => 'required|exists:stocks,id',
             'production_date' => 'nullable|date',
             'estimated_output' => 'nullable|numeric|min:0',
+            'expected_output' => 'nullable|numeric|min:0',
             'total_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
             'materials' => 'required|array',
@@ -191,6 +211,7 @@ class ProductionController extends Controller
             'stock_id' => $request->stock_id,
             'production_date' => $request->production_date ?? $draft->production_date,
             'estimated_output' => $estimatedOutput,
+            'expected_output' => $request->expected_output !== null && $request->expected_output !== '' ? (float) $request->expected_output : null,
             'notes' => $request->notes,
             'materials_json' => $materials,
             'total_quantity' => $totalQuantity,
@@ -253,7 +274,7 @@ class ProductionController extends Controller
         if (!Auth::check()) {
             return redirect()->route('login_page')->with('error', 'Please login first');
         }
-        $draft = ProductionDraft::with('stock')->findOrFail($id);
+        $draft = ProductionDraft::with(['stock', 'stock.productionUnit'])->findOrFail($id);
         return view('stock.production', ['draft' => $draft, 'is_edit' => true]);
     }
 
@@ -276,6 +297,7 @@ class ProductionController extends Controller
                 'stock_id' => $draft->stock_id,
                 'production_date' => $draft->production_date ?? now()->toDateString(),
                 'estimated_output' => $draft->estimated_output,
+                'expected_output' => $draft->expected_output,
                 'total_quantity' => $draft->total_quantity,
                 'total_items' => $draft->total_items,
                 'total_amount' => $totalAmount,
@@ -408,7 +430,7 @@ class ProductionController extends Controller
         if (!Auth::check()) {
             return redirect()->route('login_page')->with('error', 'Please login first');
         }
-        $production = Production::with(['stock', 'details', 'packagings'])->findOrFail($id);
+        $production = Production::with(['stock.productionUnit', 'details', 'packagings'])->findOrFail($id);
         return view('stock.production_profile', ['production' => $production]);
     }
 
@@ -433,10 +455,15 @@ class ProductionController extends Controller
         $actualOutput = ($packaging && ($packaging->status ?? '') === 'completed' && $packagingActualOutput > 0)
             ? $packagingActualOutput
             : $productionActualOutput;
+        $actualPackagingOutput = (float) ($production->actual_packaging_output ?? 0);
+        if ($actualPackagingOutput <= 0 && $production->packagings->isNotEmpty()) {
+            $actualPackagingOutput = (float) $production->packagings->sum('actual_packaging_output');
+        }
         $totalMaterialCost = $totalProductionCost + $totalPackagingCost;
         $costPerUnitEstimated = $estimatedOutput > 0 ? ($totalMaterialCost / $estimatedOutput) : 0;
         $finalOutput = $actualOutput > 0 ? $actualOutput : $estimatedOutput;
         $costPerUnitActual = $finalOutput > 0 ? ($totalMaterialCost / $finalOutput) : 0;
+        $costPerUnitActualPackaging = $actualPackagingOutput > 0 ? ($totalMaterialCost / $actualPackagingOutput) : 0;
 
         return view('stock.production_invoice', [
             'production' => $production,
@@ -448,8 +475,10 @@ class ProductionController extends Controller
             'estimatedOutput' => $estimatedOutput,
             'actualOutput' => $actualOutput,
             'finalOutput' => $finalOutput,
+            'actualPackagingOutput' => $actualPackagingOutput,
             'costPerUnitEstimated' => $costPerUnitEstimated,
             'costPerUnitActual' => $costPerUnitActual,
+            'costPerUnitActualPackaging' => $costPerUnitActualPackaging,
         ]);
     }
 
@@ -948,6 +977,7 @@ class ProductionController extends Controller
         $user = Auth::user();
         $userName = $user->user_name ?? $user->name ?? 'system';
         $actualOutput = (float) ($request->actual_output ?? $production->estimated_output ?? 0);
+        $completionNotes = $request->completion_notes ? trim($request->completion_notes) : null;
 
         DB::beginTransaction();
         try {
@@ -959,33 +989,37 @@ class ProductionController extends Controller
             
             // Add actual output to stock quantity
             $stock = $production->stock;
-            if ($stock && $actualOutput > 0) {
-                $previousQty = (float) $stock->quantity;
-                $stock->quantity = $previousQty + $actualOutput;
-                $stock->save();
+            // if ($stock && $actualOutput > 0) {
+            //     $previousQty = (float) $stock->quantity;
+            //     $stock->quantity = $previousQty + $actualOutput;
+            //     $stock->save();
                 
-                // Log history for stock update
-                History::create([
-                    'operation' => 'production_completed',
-                    'source' => 'stock',
-                    'previous_data' => [
-                        'stock_id' => $stock->id,
-                        'stock_name' => $stock->stock_name,
-                        'quantity_before' => $previousQty,
-                    ],
-                    'new_data' => [
-                        'production_id' => $production->id,
-                        'batch_id' => $production->batch_id,
-                        'actual_output' => $actualOutput,
-                        'quantity_after' => $stock->quantity,
-                    ],
-                    'added_by' => $userName,
-                    'user_id' => $user->id ?? null,
-                    'added_at' => now(),
-                ]);
-            }
+            //     // Log history for stock update
+            //     History::create([
+            //         'operation' => 'production_completed',
+            //         'source' => 'stock',
+            //         'previous_data' => [
+            //             'stock_id' => $stock->id,
+            //             'stock_name' => $stock->stock_name,
+            //             'quantity_before' => $previousQty,
+            //         ],
+            //         'new_data' => [
+            //             'production_id' => $production->id,
+            //             'batch_id' => $production->batch_id,
+            //             'actual_output' => $actualOutput,
+            //             'quantity_after' => $stock->quantity,
+            //         ],
+            //         'added_by' => $userName,
+            //         'user_id' => $user->id ?? null,
+            //         'added_at' => now(),
+            //     ]);
+            // }
             
             // Production history - production completed
+            $historyNotes = trans('messages.production_sent_to_packaging', [], session('locale', 'en'));
+            if ($completionNotes) {
+                $historyNotes = $completionNotes;
+            }
             ProductionHistory::create([
                 'production_id' => $production->id,
                 'batch_id' => $production->batch_id,
@@ -993,7 +1027,7 @@ class ProductionController extends Controller
                 'material_id' => null,
                 'material_name' => null,
                 'quantity' => 0,
-                'notes' => trans('messages.production_sent_to_packaging', [], session('locale', 'en')),
+                'notes' => $historyNotes,
                 'added_by' => $userName,
                 'user_id' => $user->id ?? null,
             ]);

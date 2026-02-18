@@ -31,7 +31,7 @@
               <th class="text-center px-3 py-3 font-bold text-gray-700">{{ trans('messages.total_quantity', [], session('locale')) }}</th>
               <th class="text-center px-3 py-3 font-bold text-gray-700">{{ trans('messages.total_cost', [], session('locale')) }}</th>
               <th class="text-center px-3 py-3 font-bold text-gray-700">{{ trans('messages.cost_per_unit', [], session('locale')) }}</th>
-              <th class="text-center px-3 py-3 font-bold text-gray-700">{{ trans('messages.status', [], session('locale')) }}</th>
+              <th class="text-center px-3 py-3 font-bold text-gray-700">{{ trans('messages.production_status', [], session('locale')) ?: 'Production Status' }}</th>
               <th class="text-center px-3 py-3 font-bold text-gray-700">{{ trans('messages.packaging', [], session('locale')) }} {{ trans('messages.status', [], session('locale')) }}</th>
               <th class="text-center px-3 py-3 font-bold text-gray-700">{{ trans('messages.action', [], session('locale')) }}</th>
             </tr>

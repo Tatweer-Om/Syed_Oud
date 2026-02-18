@@ -35,7 +35,7 @@ class StockController extends Controller
 public function edit_stock($id)
 {
     $categories = Category::all();
-    $stock = Stock::with('category')->findOrFail($id);
+    $stock = Stock::with(['category', 'productionUnit'])->findOrFail($id);
     $returnPage = (int) request()->get('page', 1);
     if ($returnPage < 1) {
         $returnPage = 1;
@@ -81,6 +81,7 @@ public function add_stock(Request $request)
     $stock->stock_name        = $request->stock_name;
     $stock->category_id       = $request->category_id;
     $stock->barcode           = $request->barcode;
+    $stock->production_unit_id = $request->production_unit_id ?: null;
     $stock->stock_notes       = $request->stock_notes;
 
     if ($request->hasFile('image')) {
@@ -121,6 +122,7 @@ public function update_stock(Request $request)
     $stock->stock_name        = $request->stock_name;
     $stock->category_id       = $request->category_id;
     $stock->barcode           = $request->barcode;
+    $stock->production_unit_id = $request->production_unit_id ?: null;
     $stock->stock_notes       = $request->stock_notes;
 
     if ($request->hasFile('image')) {
@@ -234,13 +236,14 @@ public function delete_stock($id)
  */
 public function get_simple_stock_detail(Request $request)
 {
-    $stock = Stock::with('category')->findOrFail($request->id);
+    $stock = Stock::with(['category', 'productionUnit'])->findOrFail($request->id);
     $imageUrl = $stock->image ? asset($stock->image) : null;
     return response()->json([
         'stock_id' => $stock->id,
         'stock_name' => $stock->stock_name ?? '-',
         'category_name' => $stock->category?->category_name ?? '-',
         'barcode' => $stock->barcode ?? '-',
+        'production_unit_name' => $stock->productionUnit?->unit_name ?? '-',
         'stock_notes' => $stock->stock_notes ?? '-',
         'image' => $imageUrl,
         'cost_price' => $stock->cost_price ?? 0,

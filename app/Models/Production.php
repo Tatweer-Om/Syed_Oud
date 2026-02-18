@@ -13,7 +13,9 @@ class Production extends Model
         'stock_id',
         'production_date',
         'estimated_output',
+        'expected_output',
         'actual_output',
+        'actual_packaging_output',
         'total_quantity',
         'total_items',
         'total_amount',
@@ -28,7 +30,9 @@ class Production extends Model
 
     protected $casts = [
         'estimated_output' => 'decimal:2',
+        'expected_output' => 'decimal:2',
         'actual_output' => 'decimal:2',
+        'actual_packaging_output' => 'decimal:2',
         'total_quantity' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'cost_per_unit' => 'decimal:2',

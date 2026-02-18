@@ -6,9 +6,12 @@
 @endpush
 
 <style>
-  body {
-    font-family: 'IBM Plex Sans Arabic', sans-serif;
-  }
+  body { font-family: 'IBM Plex Sans Arabic', sans-serif; }
+  .stock-unit-dropdown { display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 1060; max-height: 200px; overflow-y: auto; background: #fff; border: 1px solid #e5e7eb; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15); margin-top: 2px; }
+  .stock-unit-dropdown.show { display: block; }
+  .stock-unit-option { padding: 0.4rem 0.75rem; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; }
+  .stock-unit-option:hover, .stock-unit-option.highlight { background: #fef2f2; }
+  .stock-unit-wrap { position: relative; }
 </style>
 <main class="flex-1 p-4 md:p-6">
   <div class="max-w-7xl mx-auto">
@@ -38,34 +41,47 @@
             <h2 class="text-lg font-bold text-gray-800">{{ trans('messages.basic_info', [], session('locale')) }}</h2>
           </div>
           
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <label class="flex flex-col">
-              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.stock_name', [], session('locale')) ?: 'Stock Name' }}</span>
+              <span class="text-xs font-semibold text-gray-700 mb-1">{{ trans('messages.stock_name', [], session('locale')) ?: 'Stock Name' }}</span>
               <input type="text" name="stock_name" id="stock_name"
                      placeholder="{{ trans('messages.stock_name_placeholder', [], session('locale')) ?: 'Enter stock name' }}"
                      value="{{ $stock->stock_name ?? '' }}"
-                     class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
+                     class="h-10 rounded-lg px-3 text-sm border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
             </label>
-
             <label class="flex flex-col">
-              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.category', [], session('locale')) }}</span>
-              <select class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" 
-                      name="category_id" id="category_id">
+              <span class="text-xs font-semibold text-gray-700 mb-1">{{ trans('messages.barcode', [], session('locale')) }}</span>
+              <div class="flex gap-1" x-data="{ generating: false, generated: false }">
+                <input type="text" name="barcode" id="barcode" value="{{ $stock->barcode ?? '' }}"
+                       class="h-10 flex-1 rounded-lg px-3 text-sm border border-gray-300 focus:ring-2 focus:ring-primary/50 transition-all min-w-0"
+                       :class="generated ? 'border-green-500 bg-green-50' : ''" />
+                <button type="button" @click="generating = true; setTimeout(() => { var v = Math.floor(100000000000 + Math.random() * 900000000000); document.getElementById('barcode').value = v; generating = false; generated = true; setTimeout(() => generated = false, 2000); }, 500);" :disabled="generating"
+                        class="h-10 px-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center shrink-0" title="{{ trans('messages.generate', [], session('locale')) }}">
+                  <span class="material-symbols-outlined text-lg" :class="generating ? 'animate-spin' : ''">qr_code_2</span>
+                </button>
+              </div>
+            </label>
+            <label class="flex flex-col">
+              <span class="text-xs font-semibold text-gray-700 mb-1">{{ trans('messages.category', [], session('locale')) }}</span>
+              <select class="h-10 rounded-lg px-3 text-sm border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" name="category_id" id="category_id">
                 <option value="">{{ trans('messages.choose', [], session('locale')) }}</option>
                 @foreach($categories as $category)
                   <option value="{{ $category->id }}" {{ $stock->category_id == $category->id ? 'selected' : '' }}>{{ $category->category_name }}</option>
                 @endforeach
               </select>
             </label>
-
             <label class="flex flex-col">
-              <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.barcode', [], session('locale')) }}</span>
-              <input type="text" name="barcode" id="barcode"
-                     value="{{ $stock->barcode ?? '' }}"
-                     class="h-11 rounded-lg px-4 border border-gray-300 focus:ring-2 focus:ring-primary/50 transition-all" />
+              <span class="text-xs font-semibold text-gray-700 mb-1">{{ trans('messages.production_unit', [], session('locale')) ?: 'Production Unit' }}</span>
+              <div class="stock-unit-wrap">
+                <input type="text" id="production_unit_search" autocomplete="off"
+                       placeholder="{{ trans('messages.search_unit_placeholder', [], session('locale')) ?: 'Search unit...' }}"
+                       value="{{ $stock->productionUnit->unit_name ?? '' }}"
+                       class="h-10 w-full rounded-lg px-3 text-sm border border-gray-300 focus:ring-2 focus:ring-primary/50 focus:border-primary transition" />
+                <input type="hidden" name="production_unit_id" id="production_unit_id" value="{{ $stock->production_unit_id ?? '' }}" />
+                <div id="production_unit_dropdown" class="stock-unit-dropdown"></div>
+              </div>
             </label>
-
-            <label class="flex flex-col md:col-span-3">
+            <label class="flex flex-col sm:col-span-2 lg:col-span-4">
               <span class="text-sm font-semibold text-gray-700 mb-1.5">{{ trans('messages.stock_notes', [], session('locale')) ?: 'Notes' }}</span>
               <textarea name="stock_notes" id="stock_notes" rows="3"
                         placeholder="{{ trans('messages.stock_notes_placeholder', [], session('locale')) ?: 'Optional notes' }}"
