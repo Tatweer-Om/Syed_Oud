@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('productions', function (Blueprint $table) {
-            $table->decimal('actual_output', 12, 2)->nullable()->after('estimated_output');
+        $table->decimal('actual_output', 12, 2)
+            ->nullable()
+            ->after('estimated_output')
+            ->comment('Actual production output');
             $table->timestamp('completed_at')->nullable()->after('status');
         });
     }

@@ -22,7 +22,7 @@
         theme: {
           extend: {
             colors: {
-              "primary": "#6D28D9","background-light": "#f9fafb","background-dark": "#111827","text-light": "#1f2937","text-dark": "#f3f4f6","subtext-light": "#6b7280","subtext-dark": "#9ca3af","border-light": "#e5e7eb","border-dark": "#374151",},
+              "primary": "#800000","background-light": "#f9fafb","background-dark": "#111827","text-light": "#1f2937","text-dark": "#f3f4f6","subtext-light": "#6b7280","subtext-dark": "#9ca3af","border-light": "#e5e7eb","border-dark": "#374151",},
             fontFamily: {
               "display": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"]
             },

@@ -120,6 +120,7 @@
                             <p><strong>{{ trans('messages.stock_name', [], session('locale')) ?: 'Stock Name' }}:</strong> <span id="detail_stock_name">-</span></p>
                             <p><strong>{{ trans('messages.category', [], session('locale')) }}:</strong> <span id="detail_category">-</span></p>
                             <p><strong>{{ trans('messages.barcode', [], session('locale')) }}:</strong> <span id="detail_barcode">-</span></p>
+                            <p><strong>{{ trans('messages.production_unit', [], session('locale')) ?: 'Production Unit' }}:</strong> <span id="detail_production_unit">-</span></p>
                             <p><strong>{{ trans('messages.quantity', [], session('locale')) }}:</strong> <span id="detail_quantity" class="font-bold text-[var(--primary-color)]">-</span></p>
                             <p><strong>{{ trans('messages.cost_price', [], session('locale')) }}:</strong> <span id="detail_cost_price">-</span></p>
                             <p><strong>{{ trans('messages.sales_price', [], session('locale')) }}:</strong> <span id="detail_sales_price">-</span></p>

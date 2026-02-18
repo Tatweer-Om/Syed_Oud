@@ -14,7 +14,7 @@
     color: #F8BBD9; /* رمادي أفتح قليلاً - مريح للعين  }*/
 
 :root {
-  --primary-color: #6b14d4; /* لون وردي جميل متناسق مع التصميم */
+  --primary-color: #800000; /* maroon primary */
 } 
 
 .dark .text-text-primary {
@@ -27,7 +27,7 @@ html, body {
 }
 
 button.bg-\[var\(--primary-color\)\] {
-  background: linear-gradient(135deg, #6b14d4, #7f3aed);
+  background: linear-gradient(135deg, #800000, #990000);
 }
 
 /* اجعل الهيدر ثابت */
@@ -97,7 +97,7 @@ html[dir="ltr"] main {
 /* ===== القائمة الجانبية في الجوال ===== */
 @media (max-width: 1024px) {
   :root {
-  --primary-color: #6b14d4; /* لون وردي جميل متناسق مع التصميم */
+  --primary-color: #800000; /* maroon primary */
 } 
   aside {
     position: fixed;
@@ -149,13 +149,13 @@ input[type="text"]:focus::placeholder {
 
 /* تأثير أنيق عند التركيز */
 div.relative:focus-within {
-  box-shadow: 0 0 0 3px rgba(107, 20, 212, 0.15);
+  box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.15);
   transform: translateY(-1px);
 }
 
-/* الزر البنفسجي */
+/* Primary button */
 button.bg-\[var\(--primary-color\)\] {
-  box-shadow: 0 2px 6px rgba(107, 20, 212, 0.25);
+  box-shadow: 0 2px 6px rgba(128, 0, 0, 0.25);
 }
 
 /* عند تمرير الماوس */
@@ -165,20 +165,20 @@ button.bg-\[var\(--primary-color\)\]:hover {
 
 /* تحسين شكل الجدول */
 table thead tr {
-  background: linear-gradient(to left, #f9f5ff, #fef6fb);
+  background: linear-gradient(to left, #fff5f5, #ffebeb);
 }
 table tbody tr:hover {
-  background-color: #fdf3ff;
+  background-color: #fff0f0;
 }
 
-/* الزر البنفسجي */
+/* Primary button */
 button.bg-\[var\(--primary-color\)\] {
-  box-shadow: 0 2px 6px rgba(107, 20, 212, 0.25);
+  box-shadow: 0 2px 6px rgba(128, 0, 0, 0.25);
 }
 
 /* النصوص */
 .text-\[var\(--primary-color\)\] {
-  color: #7a29e0;
+  color: #800000;
 }
 
 .dress_pagination li a,
@@ -253,12 +253,12 @@ input[type="checkbox"][name="permissions[]"]:checked::after {
 
 input[type="checkbox"][name="permissions[]"]:hover {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(107, 20, 212, 0.1);
+    box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
 }
 
 input[type="checkbox"][name="permissions[]"]:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(107, 20, 212, 0.2);
+    box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.2);
 }
 
 .animate-bounce {

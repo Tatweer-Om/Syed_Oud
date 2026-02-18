@@ -159,7 +159,7 @@ $(document).ready(function() {
             '<td class="px-2 py-2 text-center col-unit"><input type="text" class="purchase-unit h-10 rounded-lg border-0 bg-gray-50 px-1 text-center text-sm" readonly /></td>' +
             '<td class="px-2 py-2 text-center col-price"><input type="number" min="0" step="0.01" class="purchase-price w-full h-10 rounded-lg border border-gray-300 px-1 text-center text-sm" value="0" /></td>' +
             '<td class="px-2 py-2 text-center col-price-shipping"><span class="purchase-price-with-shipping inline-block h-10 leading-10 rounded-lg bg-gray-100 px-2 text-center text-sm min-w-[60px]">0.00</span></td>' +
-            '<td class="px-3 py-2"><input type="number" min="0" step="1" class="purchase-qty w-full h-10 rounded-lg border border-gray-300 px-3 text-center" value="0" data-row="' + idx + '" /></td>' +
+            '<td class="px-3 py-2"><input type="number" min="0" step="1" class="purchase-qty w-full h-10 rounded-lg border border-gray-300 px-3 text-center" placeholder="0" data-row="' + idx + '" /></td>' +
             '<td class="px-3 py-2 text-center"><span class="purchase-total font-semibold">0.00</span></td>' +
             '<td class="px-2 py-2 text-center"><button type="button" class="purchase-remove-row text-red-500 hover:text-red-700 p-1" data-row="' + idx + '" title="{{ trans("messages.delete", [], session("locale")) }}"><span class="material-symbols-outlined text-lg">delete</span></button></td>' +
             '</tr>';
@@ -226,8 +226,8 @@ $(document).ready(function() {
                     row.find('.purchase-material-id').val('');
                     row.find('.purchase-material-search').val('');
                     row.find('.purchase-unit').val('');
-                    row.find('.purchase-price').val('0');
-                    row.find('.purchase-qty').val('0');
+                    row.find('.purchase-price').val('');
+                    row.find('.purchase-qty').val('');
                     row.find('.purchase-price-with-shipping').text('0.00');
                     row.find('.purchase-total').text('0.00');
                     updateAllRowTotals();
@@ -250,19 +250,24 @@ $(document).ready(function() {
     });
     $(window).on('scroll', function() { $('.purchase-material-dropdown.show').removeClass('show'); });
 
-    // No negative values: clamp to 0 on blur/input for number fields
-    function clampNonNegative($input) {
-        var v = parseFloat($input.val());
+    // No negative values. allowEmpty: when true, empty/negative stays as '' (use placeholder for 0)
+    function clampNonNegative($input, allowEmpty) {
+        var raw = ($input.val() || '').toString().trim();
+        var v = parseFloat(raw);
+        if (allowEmpty && (raw === '' || isNaN(v))) { $input.val(''); return; }
+        if (allowEmpty && v < 0) { $input.val(''); return; }
         if (isNaN(v) || v < 0) $input.val(0);
     }
-    function clampQuantityInteger($input) {
-        var v = $input.val();
-        var n = parseInt(v, 10);
-        if (isNaN(n) || n < 0) { $input.val(0); return; }
-        if (String(v).indexOf('.') >= 0 || String(v).indexOf(',') >= 0) $input.val(n);
+    function clampQuantityInteger($input, allowEmpty) {
+        var raw = ($input.val() || '').toString().trim();
+        var n = parseInt(raw, 10);
+        if (allowEmpty && (raw === '' || isNaN(n))) { $input.val(''); return; }
+        if (allowEmpty && n < 0) { $input.val(''); return; }
+        if (isNaN(n) || n < 0) { $input.val(allowEmpty ? '' : 0); return; }
+        if (String(raw).indexOf('.') >= 0 || String(raw).indexOf(',') >= 0) $input.val(n);
     }
     $('#shipping_cost').on('input blur', function() {
-        clampNonNegative($(this));
+        clampNonNegative($(this), true);
         updateAllRowTotals();
     });
     $('#invoice_amount').on('input blur', function() {
@@ -272,11 +277,11 @@ $(document).ready(function() {
         if (e.key === '-' || e.key === 'e' || e.key === 'E') e.preventDefault();
     });
     $(document).on('input blur', '.purchase-price', function() {
-        clampNonNegative($(this));
+        clampNonNegative($(this), true);
         updateAllRowTotals();
     });
     $(document).on('input blur', '.purchase-qty', function() {
-        clampQuantityInteger($(this));
+        clampQuantityInteger($(this), true);
         updateAllRowTotals();
     });
 
@@ -336,7 +341,7 @@ $(document).ready(function() {
         $('#supplier_search').val((d.supplier && d.supplier.supplier_name) ? d.supplier.supplier_name : '');
         $('#invoice_number').val(d.invoice_no || '');
         $('#invoice_amount').val(d.invoice_amount != null ? parseFloat(d.invoice_amount).toFixed(2) : (d.total_amount != null ? parseFloat(d.total_amount).toFixed(2) : '0.00'));
-        $('#shipping_cost').val(d.shipping_cost || 0);
+        $('#shipping_cost').val(d.shipping_cost != null && parseFloat(d.shipping_cost) > 0 ? parseFloat(d.shipping_cost).toFixed(2) : '');
         $('#purchase_notes').val(d.notes || '');
         $('#purchase_materials_body tr').remove();
         var list = d.materials_json || [];

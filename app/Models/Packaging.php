@@ -8,13 +8,13 @@ class Packaging extends Model
 {
     protected $fillable = [
         'production_id', 'batch_id', 'stock_id', 'packaging_id', 'filling_id',
-        'estimated_output', 'actual_output', 'total_quantity', 'total_items',
+        'estimated_output', 'actual_output', 'actual_packaging_output', 'total_quantity', 'total_items',
         'total_amount', 'cost_per_unit', 'status', 'notes',
         'user_id', 'added_by', 'updated_by', 'completed_at',
     ];
 
     protected $casts = [
-        'estimated_output' => 'decimal:2', 'actual_output' => 'decimal:2',
+        'estimated_output' => 'decimal:2', 'actual_output' => 'decimal:2', 'actual_packaging_output' => 'decimal:2',
         'total_quantity' => 'decimal:2', 'total_amount' => 'decimal:2',
         'cost_per_unit' => 'decimal:2', 'completed_at' => 'datetime',
     ];

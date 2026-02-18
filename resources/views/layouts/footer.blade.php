@@ -58,6 +58,8 @@
         @include('custom_js.production_profile_js')
          @elseif ($routeName == 'packaging.create')
         @include('custom_js.packaging_js')
+         @elseif ($routeName == 'packaging.add_phase')
+        @include('custom_js.packaging_add_phase_js')
          @elseif ($routeName == 'packaging.profile')
         @include('custom_js.packaging_profile_js')
          @elseif (($route_name == 'production' || $routeName == 'production.draft.edit') && $routeName != 'production.profile')
