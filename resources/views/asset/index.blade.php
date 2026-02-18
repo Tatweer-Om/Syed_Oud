@@ -48,6 +48,7 @@
                         <th class="px-4 sm:px-6 py-4 font-semibold text-[var(--text-secondary)]">{{ trans('messages.asset_department', [], session('locale')) }}</th>
                         <th class="px-4 sm:px-6 py-4 font-semibold text-[var(--text-secondary)]">{{ trans('messages.purchase_date', [], session('locale')) }}</th>
                         <th class="px-4 sm:px-6 py-4 font-semibold text-[var(--text-secondary)]">{{ trans('messages.purchase_cost', [], session('locale')) }}</th>
+                        <th class="px-4 sm:px-6 py-4 font-semibold text-[var(--text-secondary)]">{{ trans('messages.next_maintenance_date', [], session('locale')) }}</th>
                         <th class="px-4 sm:px-6 py-4 font-semibold text-[var(--text-secondary)]">{{ trans('messages.asset_usage', [], session('locale')) }}</th>
                         <th class="px-4 sm:px-6 py-4 font-semibold text-[var(--text-secondary)]">{{ trans('messages.asset_status', [], session('locale')) }}</th>
                         <th class="px-4 sm:px-6 py-4 font-semibold text-[var(--text-secondary)] text-center">{{ trans('messages.actions', [], session('locale')) }}</th>
@@ -116,6 +117,16 @@
                         <input type="number" step="0.01"
                             placeholder="{{ trans('messages.purchase_cost', [], session('locale')) }}"
                             name="purchase_cost" id="purchase_cost"
+                            class="w-full border rounded-lg p-3 focus:ring focus:ring-[var(--primary-color)]">
+                    </div>
+
+                    <div>
+                        <label class="block text-base font-medium mb-2">
+                            {{ trans('messages.next_maintenance_date', [], session('locale')) }}
+                        </label>
+                        <input type="date"  
+                            placeholder="{{ trans('messages.next_maintenance_date', [], session('locale')) }}"
+                            name="next_maintenance_date" id="next_maintenance_date"
                             class="w-full border rounded-lg p-3 focus:ring focus:ring-[var(--primary-color)]">
                     </div>
 

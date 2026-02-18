@@ -193,6 +193,42 @@ Route::get('stock-materials', [StockController::class, 'stockMaterials'])->name(
 Route::get('stock-materials/data', [StockController::class, 'getstockMaterials'])->name('stock_materials.data');
 Route::get('move_stock_to_system', [StockController::class, 'move_stock_to_system'])->name('move_stock_to_system');
 
+// Production
+Route::get('production', [ProductionController::class, 'index'])->name('production');
+Route::get('view_production', [ProductionController::class, 'viewProduction'])->name('view_production');
+Route::get('stocks/for-production', [ProductionController::class, 'getStocksForProduction']);
+Route::get('materials/for-production', [ProductionController::class, 'getMaterialsForProduction']);
+Route::post('production/draft', [ProductionController::class, 'storeDraft'])->name('production.draft.store');
+Route::get('production/drafts', [ProductionController::class, 'getProductionDrafts']);
+Route::get('production/all', [ProductionController::class, 'getAllProductions']);
+Route::get('production/draft/{id}', [ProductionController::class, 'getDraft'])->where('id', '[0-9]+');
+Route::put('production/draft/{id}', [ProductionController::class, 'updateDraft'])->where('id', '[0-9]+');
+Route::post('production/draft/{id}/complete', [ProductionController::class, 'completeDraft'])->name('production.draft.complete')->where('id', '[0-9]+');
+Route::delete('production/draft/{id}', [ProductionController::class, 'deleteDraft'])->where('id', '[0-9]+');
+Route::get('production/draft/{id}/edit', [ProductionController::class, 'editDraft'])->name('production.draft.edit')->where('id', '[0-9]+');
+Route::get('production/{id}/profile', [ProductionController::class, 'productionProfile'])->name('production.profile')->where('id', '[0-9]+');
+Route::get('production/{id}/invoice', [ProductionController::class, 'productionInvoice'])->name('production.invoice')->where('id', '[0-9]+');
+Route::get('production/{id}', [ProductionController::class, 'getProduction'])->where('id', '[0-9]+');
+Route::post('production/{id}/add-material', [ProductionController::class, 'addMaterialToProduction'])->where('id', '[0-9]+');
+Route::post('production/{id}/remove-material', [ProductionController::class, 'removeMaterialFromProduction'])->where('id', '[0-9]+');
+Route::post('production/{id}/add-wastage', [ProductionController::class, 'addWastage'])->where('id', '[0-9]+');
+Route::get('production/{id}/wastages', [ProductionController::class, 'getWastages'])->where('id', '[0-9]+');
+Route::get('production/{id}/materials', [ProductionController::class, 'getProductionMaterials'])->where('id', '[0-9]+');
+Route::get('production/{id}/history', [ProductionController::class, 'getProductionHistory'])->where('id', '[0-9]+');
+Route::post('production/{id}/complete', [ProductionController::class, 'completeProduction'])->where('id', '[0-9]+');
+
+// Packaging
+Route::get('materials/for-packaging', [MaterialController::class, 'getMaterialsForPackaging']);
+Route::get('production/{id}/packaging', [PackagingController::class, 'create'])->name('packaging.create')->where('id', '[0-9]+');
+Route::post('packaging', [PackagingController::class, 'store']);
+Route::get('packaging/{id}/profile', [PackagingController::class, 'profile'])->name('packaging.profile')->where('id', '[0-9]+');
+Route::post('packaging/{id}/add-material', [PackagingController::class, 'addMaterial'])->where('id', '[0-9]+');
+Route::post('packaging/{id}/remove-material', [PackagingController::class, 'removeMaterial'])->where('id', '[0-9]+');
+Route::post('packaging/{id}/add-wastage', [PackagingController::class, 'addWastage'])->where('id', '[0-9]+');
+Route::post('packaging/{id}/complete', [PackagingController::class, 'complete'])->where('id', '[0-9]+');
+Route::get('packaging/{id}/materials', [PackagingController::class, 'getMaterials'])->where('id', '[0-9]+');
+Route::get('packaging/{id}/history', [PackagingController::class, 'getHistory'])->where('id', '[0-9]+');
+
 
 // umair's
 // asset

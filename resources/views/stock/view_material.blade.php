@@ -45,6 +45,7 @@
                 <thead class="bg-gradient-to-l from-pink-50 to-pink-100 text-gray-800">
                     <tr>
                         <th class="text-center px-3 py-3 font-bold">{{ trans('messages.material_name', [], session('locale')) }}</th>
+                        <th class="text-center px-3 py-3 font-bold">{{ trans('messages.material_type', [], session('locale')) }}</th>
                         <th class="text-center px-3 py-3 font-bold">{{ trans('messages.unit', [], session('locale')) }}</th>
                         <th class="text-center px-3 py-3 font-bold">{{ trans('messages.quantity', [], session('locale')) }}</th>
                         <th class="text-center px-3 py-3 font-bold">{{ trans('messages.buy_price', [], session('locale')) }}</th>
@@ -135,6 +136,45 @@
                     </button>
                     <button type="submit" class="px-6 py-2.5 bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90 text-white rounded-xl transition font-semibold">
                         {{ trans('messages.save', [], session('locale')) }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Quantity Modal (popup) -->
+    <div id="addQuantityModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold text-gray-800">{{ trans('messages.add_quantity', [], session('locale')) }}</h2>
+                <button type="button" id="closeAddQuantityModal" class="text-gray-400 hover:text-gray-600 p-1">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="addQuantityModalForm">
+                @csrf
+                <input type="hidden" id="add_quantity_material_id" name="material_id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">{{ trans('messages.material_name', [], session('locale')) }}</label>
+                        <input type="text" id="add_quantity_material_name" readonly
+                            class="w-full h-11 rounded-xl border border-gray-200 bg-gray-50 px-4 text-gray-700"
+                            placeholder="-">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">{{ trans('messages.quantity', [], session('locale')) }} <span class="text-red-500">*</span></label>
+                        <input type="number" step="0.01" min="0.01" name="quantity" id="add_quantity_input" required
+                            class="w-full h-11 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] px-4"
+                            placeholder="0.00">
+                        <p class="text-xs text-gray-500 mt-1" id="add_quantity_unit_hint"></p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t">
+                    <button type="button" id="cancelAddQuantityBtn" class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 rounded-xl transition font-semibold">
+                        {{ trans('messages.cancel', [], session('locale')) }}
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition font-semibold">
+                        {{ trans('messages.add', [], session('locale')) }}
                     </button>
                 </div>
             </form>

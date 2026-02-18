@@ -35,6 +35,7 @@
                 <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)]">${asset.department || '-'}</td>
                 <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)]">${asset.purchase_date || '-'}</td>
                 <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)]">${asset.purchase_cost ? parseFloat(asset.purchase_cost).toFixed(3) : '0.000'}</td>
+                <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)]">${asset.next_maintenance_date || '-'}</td>
                 <td class="px-4 sm:px-6 py-5 text-[var(--text-primary)]">${asset.usage || '-'}</td>
                  <td class="px-4 sm:px-6 py-5 ${statusClass} font-semibold">${statusText}</td>
                 <td class="px-4 sm:px-6 py-5 text-center">
@@ -110,6 +111,7 @@ $(document).on('click', '#pagination a', function(e) {
             let name = $('#name').val().trim();
             let department = $('#department').val().trim();
             let purchase_date = $('#purchase_date').val().trim();
+            let next_maintenance_date = $('#next_maintenance_date').val().trim();
             let purchase_cost = $('#purchase_cost').val() || 0;
             let usage = $('#usage').val().trim();
             let status = $('#status').val() || 1;
@@ -140,6 +142,7 @@ $(document).on('click', '#pagination a', function(e) {
                 name: name,
                 department: department,
                 purchase_date: purchase_date,
+                next_maintenance_date: next_maintenance_date,
                 purchase_cost: purchase_cost,
                 usage: usage,
                 status: status,
@@ -199,6 +202,7 @@ $(document).on('click', '#pagination a', function(e) {
                 $('#name').val(asset.name || '');
                 $('#department').val(asset.department || '');
                 $('#purchase_date').val(asset.purchase_date || '');
+                $('#next_maintenance_date').val(asset.next_maintenance_date || '');
                 $('#purchase_cost').val(asset.purchase_cost || '');
                 $('#usage').val(asset.usage || '');
                 $('#status').val(asset.status || 1);

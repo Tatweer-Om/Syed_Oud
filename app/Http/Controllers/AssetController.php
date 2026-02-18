@@ -37,6 +37,7 @@ class AssetController extends Controller
         $asset->name = $request->name;
         $asset->department = $request->department;
         $asset->purchase_date = $request->purchase_date;
+        $asset->next_maintenance_date = $request->next_maintenance_date;
         $asset->purchase_cost = $request->purchase_cost ?? 0;
         $asset->usage = $request->usage ?? "";
         $asset->status = $request->status ?? 1;
@@ -55,6 +56,7 @@ class AssetController extends Controller
         $asset->name = $request->name;
         $asset->department = $request->department;
         $asset->purchase_date = $request->purchase_date;
+        $asset->next_maintenance_date = $request->next_maintenance_date;
         $asset->purchase_cost = $request->purchase_cost ?? 0;
         $asset->usage = $request->usage ?? "";
         $asset->status = $request->status ?? 1;

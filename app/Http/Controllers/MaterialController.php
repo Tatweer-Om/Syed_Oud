@@ -57,20 +57,14 @@ public function getmaterial()
     $material->description     = $request->material_notes ?? null;
     $material->unit            = $request->material_unit;
     $material->unit_price      = $request->purchase_price ?? 0;
-    $quantity = floatval($request->quantity ?? $request->meters_pieces ??   0);
+    $quantity = floatval($request->quantity ?? $request->meters_pieces ?? 0);
+    $material->quantity        = $quantity;
     $material->added_by        = $user ? ($user->user_name ?? $user->name ?? 'system') : 'system';
     $material->user_id         = $user ? $user->id : 1;
     $material->save();
 
-    // Calculate initial quantity based on unit
-    $initialQuantity = 0;
-    if ($material->unit === 'roll') {
-        $initialQuantity = floatval($material->rolls_count ?? 0);
-    } elseif ($material->unit === 'meter' || $material->unit === 'piece') {
-        $initialQuantity = floatval($material->meters_per_roll ?? 0);
-    } else {
-        $initialQuantity = floatval($material->meters_per_roll ?? 0);
-    }
+    // Use the quantity that was saved
+    $initialQuantity = $quantity;
 
     // Log audit entry for material addition
     try {
@@ -107,15 +101,18 @@ public function getmaterial()
  
  public function update_material(Request $request)
 {
-    // Validate input (same columns as add_material)
+    // Validate input
     $request->validate([
         'material_id' => 'required|exists:materials,id',
         'material_name' => 'required|string|max:255',
         'material_type' => 'nullable|string|in:production,packaging',
         'material_unit' => 'required|string',
+        'material_category' => 'nullable|string',
         'quantity' => 'nullable|numeric|min:0',
         'purchase_price' => 'nullable|numeric|min:0',
-        'material_notes' => 'nullable|string',
+        'sale_price' => 'nullable|numeric|min:0',
+        'meters_pieces' => 'nullable|numeric|min:0',
+        'material_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
     $material_id = $request->material_id;
@@ -123,15 +120,21 @@ public function getmaterial()
     $user = Auth::user();
     $previousData = $material->toArray();
 
+    // Update material image only if uploaded
+ 
+
+    // Update fields
     $material->material_name   = $request->material_name;
     $material->material_type   = $request->material_type ?? $material->material_type ?? 'production';
     $material->description     = $request->material_notes ?? $material->description;
     $material->unit            = $request->material_unit;
-    $material->unit_price      = $request->purchase_price ?? $material->unit_price ?? 0;
-    $quantity = floatval($request->quantity ?? 0);
+    $quantity = floatval($request->quantity ?? $request->meters_pieces ?? 0);
     $material->quantity        = $quantity;
-    $material->updated_by      = $user ? ($user->user_name ?? $user->name ?? 'system') : 'system';
-    $material->user_id         = $user ? $user->id : 1;
+    $material->unit_price      = $request->purchase_price ?? $material->unit_price ?? 0;
+
+    // Keep track of user
+    $material->added_by = $user->name ?? 'system';
+    $material->user_id  = $user->id ?? 1;
 
     $material->save();
 
@@ -222,7 +225,24 @@ public function getAllMaterials()
     return response()->json($materials);
 }
 
-/** Materials for purchase page select (id, name, unit, buy_price) */
+/** Materials for packaging page (material_type = packaging) */
+    public function getMaterialsForPackaging()
+    {
+        $materials = Material::where('material_type', 'packaging')
+            ->orderBy('material_name', 'ASC')
+            ->get(['id', 'material_name', 'unit', 'unit_price'])
+            ->map(function ($m) {
+                return [
+                    'id' => $m->id,
+                    'material_name' => $m->material_name ?? '',
+                    'unit' => $m->unit ?? '-',
+                    'buy_price' => (float) ($m->unit_price ?? 0),
+                ];
+            });
+        return response()->json($materials->values()->all());
+    }
+
+    /** Materials for purchase page select (id, name, unit, buy_price) */
     public function getMaterialsForPurchase()
     {
         $materials = Material::orderBy('material_name', 'ASC')
@@ -461,6 +481,8 @@ private function getOperationTypeLabel($operationType)
         'quantity_added' => trans('messages.quantity_added', [], session('locale', 'en')) ?: 'Quantity Added',
         'sent_to_tailor' => trans('messages.sent_to_tailor', [], session('locale', 'en')) ?: 'Sent to Tailor',
         'material_deducted' => trans('messages.material_deducted', [], session('locale', 'en')) ?: 'Material Deducted',
+        'production_deducted' => trans('messages.production_deducted', [], session('locale', 'en')) ?: 'Production Deducted',
+        'purchase_added' => trans('messages.purchase_added', [], session('locale', 'en')) ?: 'Purchase Added',
     ];
     
     return $labels[$operationType] ?? $operationType;
@@ -476,6 +498,8 @@ private function getSourceLabel($source)
         'stock' => trans('messages.stock', [], session('locale', 'en')) ?: 'Stock',
         'special_order' => trans('messages.special_order', [], session('locale', 'en')) ?: 'Special Order',
         'manage_quantity' => trans('messages.manage_quantity', [], session('locale', 'en')) ?: 'Manage Quantity',
+        'production' => trans('messages.production', [], session('locale', 'en')) ?: 'Production',
+        'purchase' => trans('messages.purchase', [], session('locale', 'en')) ?: 'Purchase',
     ];
     
     return $labels[$source] ?? $source;

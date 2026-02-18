@@ -665,6 +665,26 @@ return [
     'confirm_complete_purchase' => 'Complete this purchase? It will be saved to records.',
     'complete_purchase' => 'Complete purchase',
     'edit_purchase_draft' => 'Edit purchase draft',
+    
+    // Production
+    'production' => 'Production',
+    'view_production' => 'View Production',
+    'all_productions' => 'All Productions',
+    'production_details' => 'Production Details',
+    'estimated_output' => 'Estimated Output Units',
+    'estimated_output_placeholder' => 'e.g. 100',
+    'production_draft_saved' => 'Production saved as draft.',
+    'production_draft_updated' => 'Production draft updated.',
+    'production_draft_deleted' => 'Production draft deleted.',
+    'edit_production_draft' => 'Edit Production Draft',
+    'please_select_stock' => 'Please select a stock',
+    'search_stock' => 'Search stock by name or barcode...',
+    'no_stock_found' => 'No stock found',
+    'no_material_found' => 'No material found',
+    'total_materials' => 'Total Materials',
+    
+    'production_invoice' => 'Production Invoice',
+    'please_add_notes' => 'Please add notes',
     'material_already_added' => 'Material already added',
     'material_already_added_increase_quantity' => 'Do you want to add the quantity to the existing row?',
     'please_select_supplier' => 'Please select a supplier',
@@ -1087,6 +1107,14 @@ return [
     'material_type' => 'Material Type',
     'production' => 'Production',
     'packaging' => 'Packaging',
+    'packaging_profile' => 'Packaging Profile',
+    'packaging_history' => 'Packaging History',
+    'packaging_created_success' => 'Packaging created successfully',
+    'packaging_already_completed' => 'Packaging already completed',
+    'packaging_completed' => 'Packaging Completed',
+    'packaging_completed_success' => 'Packaging completed successfully',
+    'complete_packaging' => 'Complete Packaging',
+    'production_info' => 'Production Info',
     'quantity_placeholder' => 'Enter quantity',
     'stocks_expected' => 'stocks Expected',
     'stocks_expected_placeholder' => 'Enter expected stocks',
@@ -1622,6 +1650,7 @@ return [
     'all_boutiques' => 'All Boutiques',
     'all_channels' => 'All Channels',
 
+ 
 
 
     // asset Module
@@ -1675,5 +1704,5 @@ return [
     'enter_maintenance_date' => 'Please enter maintenance date',
     'enter_next_maintenance_date' => 'Please enter next maintenance date',
     'enter_cost' => 'Please enter cost',
-
-];
+ 
+ ];

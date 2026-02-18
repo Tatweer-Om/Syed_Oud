@@ -42,9 +42,11 @@ class AssetMaintenanceController extends Controller
         $asset->cost = $request->cost;
         $asset->added_by = $user->user_name ?? 'system';
         $asset->user_id = $user->id ?? 1;
-
         $asset->save();
 
+        $asset_data = Asset::find($request->asset_id);
+        $asset_data->next_maintenance_date = $request->next_maintenance_date;
+        $asset_data->save();
         return response()->json($asset);
     }
 
@@ -61,6 +63,10 @@ class AssetMaintenanceController extends Controller
         $asset->cost = $request->cost;
         $asset->updated_by = $user->user_name ?? 'system_update';
         $asset->save();
+
+        $asset_data = Asset::find($request->asset_id);
+        $asset_data->next_maintenance_date = $request->next_maintenance_date;
+        $asset_data->save();
 
         return response()->json($asset);
     }
