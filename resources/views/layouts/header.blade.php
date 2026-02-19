@@ -33,10 +33,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&amp;display=swap" rel="stylesheet" />
     <link href="{{asset('css/style.css')}}" rel="stylesheet" />
     <style>
       [x-cloak] { display: none !important; }
+      /* Fallback so icon placeholders don't break layout when Material Symbols font is slow or blocked */
+      .material-symbols-outlined { font-family: 'Material Symbols Outlined', sans-serif; font-weight: 100; font-style: normal; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">

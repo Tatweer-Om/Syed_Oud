@@ -36,7 +36,7 @@ $(document).ready(function() {
 
         $.get("{{ url('stock/comprehensive-audit/list') }}?" + params.toString(), function(res) {
             if (!res.success) {
-                $('#auditTableBody').html('<tr><td colspan="13" class="px-4 py-8 text-center text-red-500">Error loading audit data</td></tr>');
+                $('#auditTableBody').html('<tr><td colspan="9" class="px-4 py-8 text-center text-red-500">Error loading audit data</td></tr>');
                 return;
             }
 
@@ -70,10 +70,8 @@ $(document).ready(function() {
                         <tr class="hover:bg-gray-50 border-b">
                             <td class="px-4 py-3 border text-right text-xs">${item.date}</td>
                             <td class="px-4 py-3 border text-right text-xs">${item.time}</td>
-                            <td class="px-4 py-3 border text-right text-xs font-medium">${item.stock_code}</td>
                             <td class="px-4 py-3 border text-right text-xs">${item.barcode}</td>
-                            <td class="px-4 py-3 border text-right text-xs">${item.size || '—'}</td>
-                            <td class="px-4 py-3 border text-right text-xs">${item.design_name}</td>
+                            <td class="px-4 py-3 border text-right text-xs font-medium">${item.design_name || '—'}</td>
                             <td class="px-4 py-3 border text-right text-xs">
                                 <span class="px-1 rounded text-xs font-medium ${
                                     item.operation_type === 'added' ? 'bg-green-100 text-green-800' :
@@ -88,20 +86,18 @@ $(document).ready(function() {
                             <td class="px-4 py-3 border text-right text-xs">${item.previous_quantity}</td>
                             <td class="px-4 py-3 border text-right text-xs font-semibold ${changeClass}">${changeSign}${item.quantity_change}</td>
                             <td class="px-4 py-3 border text-right text-xs font-semibold">${item.new_quantity}</td>
-                            <td class="px-4 py-3 border text-right text-xs">${item.related_id}</td>
-                            <td class="px-4 py-3 border text-right text-xs">${item.related_details || '—'}</td>
                             <td class="px-4 py-3 border text-right text-xs">${item.added_by}</td>
                         </tr>
                     `;
                 });
             } else {
-                rows = '<tr><td colspan="13" class="px-4 py-8 text-center text-gray-400 text-sm">{{ trans("messages.no_data_found", [], session("locale")) ?: "No data found" }}</td></tr>';
+                rows = '<tr><td colspan="9" class="px-4 py-8 text-center text-gray-400 text-sm">{{ trans("messages.no_data_found", [], session("locale")) ?: "No data found" }}</td></tr>';
             }
 
             $('#auditTableBody').html(rows);
             renderPagination(res.current_page, res.last_page, res.total, res.per_page);
         }).fail(function() {
-            $('#auditTableBody').html('<tr><td colspan="13" class="px-4 py-8 text-center text-red-500">Error loading audit data</td></tr>');
+            $('#auditTableBody').html('<tr><td colspan="9" class="px-4 py-8 text-center text-red-500">Error loading audit data</td></tr>');
         });
     }
 
