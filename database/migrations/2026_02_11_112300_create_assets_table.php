@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('purchase_cost', 12, 3)->nullable();
             $table->tinyInteger('status')->default(1)->comment('1: Working, 2: Under Maintenance, 3: Stopped');
             $table->text('usage')->nullable();
+            $table->date('next_maintenance_date')->nullable(); // for alerts
             $table->string('added_by')->nullable();
             $table->string('updated_by')->nullable();
             $table->string('user_id')->nullable();

@@ -17,9 +17,15 @@ use App\Http\Controllers\SMSController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\UnitController;
+ 
+use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AssetMaintenanceController;
+ 
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+ 
 
 Route::get('/', function () {
     if (auth()->check()) {

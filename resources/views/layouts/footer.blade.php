@@ -94,13 +94,17 @@
          @include('custom_js.channel_profile_js')
            @elseif ($route_name == 'maintenance')
          @include('custom_js.maintenance_js')
-               <!-- @elseif ($route_name == 'manage_quantity')
-         @include('custom_js.manage_quantity_js') -->
+              {{-- <!-- @elseif ($route_name == 'manage_quantity') --}}
+         {{-- @include('custom_js.manage_quantity_js') --> --}}
           @elseif ($route_name == 'movements_log')
          @include('custom_js.movement_log_js')
-          @elseif ($routeName == 'tailor_material_audit')
+          @elseif ($route_name == 'tailor_material_audit')
          @include('custom_js.material_audit_js')
+         @elseif ($route_name == 'asset')
+         @include('custom_js.asset_js')
+         @elseif ($route_name == 'assetsmaintenance')
+         @include('custom_js.asset_maintenance_js')
     @endif
-         
+          
   </body>
 </html>
