@@ -198,14 +198,22 @@
           </div>
           <div class="p-4 space-y-3">
             @php
-              $costPerUnit = ((float) $production->estimated_output > 0) 
-                  ? ((float) $production->total_amount / (float) $production->estimated_output) 
+              $costPerUnit = ((float) $production->estimated_output > 0)
+                  ? ((float) $production->total_amount / (float) $production->estimated_output)
                   : 0;
             @endphp
-            
+
             <div class="stat-box primary pl-3 py-2">
               <p class="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">{{ trans('messages.estimated_output', [], session('locale')) }}</p>
               <p class="text-base font-bold text-gray-900">{{ number_format((float) $production->estimated_output, 0) }}</p>
+            </div>
+
+            @php
+              $expectedOutputUnit = optional(optional($production->stock)->productionUnit)->unit_name ?? '';
+            @endphp
+            <div class="stat-box primary pl-3 py-2">
+              <p class="text-[10px] text-gray-500 uppercase tracking-wider mb-0.5">{{ trans('messages.expected_output', [], session('locale')) }}</p>
+              <p class="text-base font-bold text-gray-900">{{ $production->expected_output !== null ? number_format((float) $production->expected_output, 0) : '-' }}{{ $expectedOutputUnit ? ' ' . $expectedOutputUnit : '' }}</p>
             </div>
             
             @if($production->actual_output)

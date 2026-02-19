@@ -202,25 +202,29 @@ $(document).ready(function() {
     
     // Add Material Action
     $('#confirm_add_material').on('click', function() {
+        var $btn = $(this);
+        if ($btn.prop('disabled')) return;
+        $btn.prop('disabled', true).text('...');
+
         var materialId = $('#add_material_id').val();
         var qty = parseFloat($('#add_material_qty').val());
         var notes = ($('#add_material_notes').val() || '').trim();
         
         if (!materialId) {
             show_notification('error', '{{ trans("messages.please_select_material", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             return;
         }
         if (!qty || qty <= 0) {
             show_notification('error', '{{ trans("messages.enter_valid_quantity", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             return;
         }
         if (!notes) {
             show_notification('error', '{{ trans("messages.please_add_notes", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             return;
         }
-        
-        var $btn = $(this);
-        $btn.prop('disabled', true).text('...');
         
         $.ajax({
             url: "{{ url('production') }}/" + PRODUCTION_ID + "/add-material",
@@ -238,8 +242,8 @@ $(document).ready(function() {
                     location.reload();
                 } else {
                     show_notification('error', res.message || 'Error');
+                    $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
                 }
-                $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             },
             error: function(xhr) {
                 var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error';
@@ -251,25 +255,29 @@ $(document).ready(function() {
     
     // Remove Material Action
     $('#confirm_remove_material').on('click', function() {
+        var $btn = $(this);
+        if ($btn.prop('disabled')) return;
+        $btn.prop('disabled', true).text('...');
+
         var materialId = $('#remove_material_id').val();
         var qty = parseFloat($('#remove_material_qty').val());
         var notes = ($('#remove_material_notes').val() || '').trim();
         
         if (!materialId) {
             show_notification('error', '{{ trans("messages.please_select_material", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.remove", [], session("locale")) }}');
             return;
         }
         if (!qty || qty <= 0) {
             show_notification('error', '{{ trans("messages.enter_valid_quantity", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.remove", [], session("locale")) }}');
             return;
         }
         if (!notes) {
             show_notification('error', '{{ trans("messages.please_add_notes", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.remove", [], session("locale")) }}');
             return;
         }
-        
-        var $btn = $(this);
-        $btn.prop('disabled', true).text('...');
         
         $.ajax({
             url: "{{ url('production') }}/" + PRODUCTION_ID + "/remove-material",
@@ -287,8 +295,8 @@ $(document).ready(function() {
                     location.reload();
                 } else {
                     show_notification('error', res.message || 'Error');
+                    $btn.prop('disabled', false).text('{{ trans("messages.remove", [], session("locale")) }}');
                 }
-                $btn.prop('disabled', false).text('{{ trans("messages.remove", [], session("locale")) }}');
             },
             error: function(xhr) {
                 var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error';
@@ -300,6 +308,10 @@ $(document).ready(function() {
     
     // Add Wastage Action
     $('#confirm_add_wastage').on('click', function() {
+        var $btn = $(this);
+        if ($btn.prop('disabled')) return;
+        $btn.prop('disabled', true).text('...');
+
         var materialId = $('#wastage_material_id').val();
         var qty = parseFloat($('#wastage_qty').val());
         var wastageType = $('input[name="wastage_type"]:checked').val();
@@ -307,23 +319,24 @@ $(document).ready(function() {
         
         if (!wastageType) {
             show_notification('error', '{{ trans("messages.select_wastage_type", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             return;
         }
         if (!materialId) {
             show_notification('error', '{{ trans("messages.please_select_material", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             return;
         }
         if (!qty || qty <= 0) {
             show_notification('error', '{{ trans("messages.enter_valid_quantity", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             return;
         }
         if (!notes) {
             show_notification('error', '{{ trans("messages.please_add_notes", [], session("locale")) }}');
+            $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             return;
         }
-        
-        var $btn = $(this);
-        $btn.prop('disabled', true).text('...');
         
         $.ajax({
             url: "{{ url('production') }}/" + PRODUCTION_ID + "/add-wastage",
@@ -342,8 +355,8 @@ $(document).ready(function() {
                     location.reload();
                 } else {
                     show_notification('error', res.message || 'Error');
+                    $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
                 }
-                $btn.prop('disabled', false).text('{{ trans("messages.add", [], session("locale")) }}');
             },
             error: function(xhr) {
                 var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Error';
@@ -367,13 +380,16 @@ $(document).ready(function() {
     });
     $('#confirm_complete_production').on('click', function() {
         var $btn = $(this);
+        if ($btn.prop('disabled')) return;
+        $btn.prop('disabled', true);
+
         var actualOutput = parseFloat($('#complete_actual_output').val()) || 0;
         var completionNotes = $('#complete_production_notes').val().trim();
         if (actualOutput < 0) {
             show_notification('error', '{{ trans("messages.actual_output", [], session("locale")) }} must be non-negative');
+            $btn.prop('disabled', false);
             return;
         }
-        $btn.prop('disabled', true);
         $.ajax({
             url: "{{ url('production') }}/" + PRODUCTION_ID + "/complete",
             type: "POST",

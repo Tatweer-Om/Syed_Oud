@@ -20,7 +20,7 @@
                 <!-- Search -->
                 <div>
                     <label class="block text-sm font-medium mb-2 text-gray-700">
-                        {{ trans('messages.search', [], session('locale')) ?: 'Search' }} ({{ trans('messages.barcode', [], session('locale')) }}, {{ trans('messages.code', [], session('locale')) }}, {{ trans('messages.design_name', [], session('locale')) }})
+                        {{ trans('messages.search', [], session('locale')) ?: 'Search' }} ({{ trans('messages.barcode', [], session('locale')) }}, {{ trans('messages.code', [], session('locale')) }}, {{ trans('messages.stock_name', [], session('locale')) ?: 'Stock' }})
                     </label>
                     <div class="relative">
                         <input
@@ -89,22 +89,18 @@
                         <tr>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.date', [], session('locale')) }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.time', [], session('locale')) }}</th>
-                            <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.stock_code', [], session('locale')) ?: 'stock Code' }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.barcode', [], session('locale')) }}</th>
-                            <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.size', [], session('locale')) ?: 'Size' }}</th>
-                            <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.design_name', [], session('locale')) }}</th>
+                            <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.stock_name', [], session('locale')) ?: 'Stock' }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.operation_type', [], session('locale')) ?: 'Operation' }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.previous_quantity', [], session('locale')) ?: 'Previous Qty' }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.quantity_change', [], session('locale')) ?: 'Change' }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.new_quantity', [], session('locale')) ?: 'New Qty' }}</th>
-                            <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.related_id', [], session('locale')) ?: 'Related ID' }}</th>
-                            <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.related_details', [], session('locale')) ?: 'Details' }}</th>
                             <th class="px-4 py-3 border text-right font-semibold text-xs">{{ trans('messages.added_by', [], session('locale')) ?: 'Added By' }}</th>
                         </tr>
                     </thead>
                     <tbody id="auditTableBody">
                         <tr>
-                            <td colspan="13" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                                 {{ trans('messages.loading', [], session('locale')) }}...
                             </td>
                         </tr>

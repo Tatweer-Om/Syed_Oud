@@ -143,7 +143,7 @@ public function update_stock(Request $request)
     $stock->sales_price       = $request->sales_price;
     $stock->discount          = $request->discount;
     $stock->tax               = $request->tax;
-    $stock->quantity          = $request->quantity ?? 0;
+    // Quantity is not updated here: stock can only be added/minus from add-stock form, manage quantity popup (view stock), or when completing packaging phase.
     $stock->notification_limit = $request->notification_limit;
     $stock->updated_by        = Auth::user()?->user_name ?? null;
     $stock->user_id           = Auth::id() ? (string) Auth::id() : null;
